@@ -1,17 +1,13 @@
-//
-//  SoulBattleApp.swift
-//  SoulBattle
-//
-//  Created by Anastasia on 09.11.2025.
-//
-
 import SwiftUI
 
 @main
 struct SoulBattleApp: App {
+    @StateObject private var gameViewModel = GameViewModel()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainCoordinatorView()
+                .environmentObject(gameViewModel)
         }
     }
 }
