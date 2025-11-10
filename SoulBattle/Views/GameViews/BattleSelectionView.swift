@@ -5,116 +5,95 @@ struct BattleSelectionView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Text("Подготовка к раунду \(gameViewModel.currentRound)")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-            
-            HStack(spacing: 20) {
-                PlayerSelectionView(player: gameViewModel.player1, playerName: "Игрок 1")
-                PlayerSelectionView(player: gameViewModel.player2, playerName: "Игрок 2")
+            // Заголовок с информацией о режиме
+            VStack {
+                Text("Подготовка к раунду \(gameViewModel.currentRound)")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Text("Режим: \(getGameModeDescription())")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.8))
             }
             
-            ActionButton(
-                title: "Начать раунд",
-                action: { gameViewModel.executeRound() },
-                isEnabled: areBothPlayersReady()
-            )
+            HStack(spacing: 20) {
+                // Игрок 1
+                PlayerSelectionView(
+                    player: gameViewModel.player1,
+                    playerName: gameViewModel.gameMode == .pvp ? "Игрок 1" : "Игрок",
+                    isInteractive: true,
+                    gameViewModel: gameViewModel
+                )
+                
+                // Игрок 2 / Компьютер
+                if gameViewModel.gameMode == .pvp {
+                    PlayerSelectionView(
+                        player: gameViewModel.player2,
+                        playerName: "Игрок 2",
+                        isInteractive: true,
+                        gameViewModel: gameViewModel
+                    )
+                } else {
+                    VStack(spacing: 15) {
+                        Text("Компьютер")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        
+                        VStack(spacing: 10) {
+                            Image(systemName: "desktopcomputer")
+                                .font(.title2)
+                                .foregroundColor(.green)
+                            
+                            Text("Готов к бою!")
+                                .font(.headline)
+                                .foregroundColor(.green)
+                            
+                            Text("Выборы сделаны автоматически")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(10)
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.1))
+                    .cornerRadius(10)
+                }
+            }
+            
+            // Основные кнопки
+            HStack {
+                Button("В меню") {
+                    gameViewModel.backToMainMenu()
+                }
+                .buttonStyle(.bordered)
+                .tint(.gray)
+                
+                Spacer()
+                
+                ActionButton(
+                    title: "Начать раунд",
+                    action: {
+                        gameViewModel.executeRound()
+                    },
+                    isEnabled: gameViewModel.areSelectionsValid()
+                )
+            }
             
             BattleLogView()
         }
         .padding()
-    }
-    
-    private func areBothPlayersReady() -> Bool {
-        return gameViewModel.player1.selectedAttacks.count == 2 &&
-               gameViewModel.player1.selectedDefenses.count == 2 &&
-               gameViewModel.player2.selectedAttacks.count == 2 &&
-               gameViewModel.player2.selectedDefenses.count == 2
-    }
-}
-
-struct PlayerSelectionView: View {
-    @ObservedObject var player: Player
-    let playerName: String
-    
-    var body: some View {
-        VStack(spacing: 15) {
-            Text("\(playerName): \(player.name)")
-                .font(.headline)
-                .foregroundColor(.white)
-            
-            // Атаки
-            VStack(alignment: .leading) {
-                Text("Атаки (2):")
-                    .font(.subheadline)
-                    .foregroundColor(.red)
-                
-                ForEach(AttackType.allCases, id: \.self) { attack in
-                    AttackButton(
-                        attackType: attack,
-                        isSelected: player.selectedAttacks.contains(attack),
-                        action: { toggleAttack(attack) }
-                    )
-                }
-            }
-            
-            // Защиты
-            VStack(alignment: .leading) {
-                Text("Защиты (2):")
-                    .font(.subheadline)
-                    .foregroundColor(.blue)
-                
-                ForEach(DefenseType.allCases, id: \.self) { defense in
-                    DefenseButton(
-                        defenseType: defense,
-                        isSelected: player.selectedDefenses.contains(defense),
-                        action: { toggleDefense(defense) }
-                    )
-                }
-            }
-            
-            // Статус выбора
-            VStack(spacing: 5) {
-                if player.selectedAttacks.count == 2 {
-                    Text("✅ Атаки выбраны")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                } else {
-                    Text("Атаки: \(player.selectedAttacks.count)/2")
-                        .font(.caption)
-                        .foregroundColor(.yellow)
-                }
-                
-                if player.selectedDefenses.count == 2 {
-                    Text("✅ Защиты выбраны")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                } else {
-                    Text("Защиты: \(player.selectedDefenses.count)/2")
-                        .font(.caption)
-                        .foregroundColor(.yellow)
-                }
-            }
-        }
-        .padding()
-        .background(Color.white.opacity(0.1))
-        .cornerRadius(10)
-    }
-    
-    private func toggleAttack(_ attack: AttackType) {
-        if player.selectedAttacks.contains(attack) {
-            player.selectedAttacks.removeAll { $0 == attack }
-        } else if player.selectedAttacks.count < 2 {
-            player.selectedAttacks.append(attack)
+        .onAppear {
+            gameViewModel.forceUpdate()
         }
     }
     
-    private func toggleDefense(_ defense: DefenseType) {
-        if player.selectedDefenses.contains(defense) {
-            player.selectedDefenses.removeAll { $0 == defense }
-        } else if player.selectedDefenses.count < 2 {
-            player.selectedDefenses.append(defense)
+    private func getGameModeDescription() -> String {
+        switch gameViewModel.gameMode {
+        case .pvp: return "Игрок vs Игрок"
+        case .pve: return "Игрок vs Компьютер"
         }
     }
 }

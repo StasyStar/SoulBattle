@@ -3,7 +3,6 @@ import Combine
 
 class Player: ObservableObject, Identifiable {
     let id = UUID()
-    let name: String
     
     // Характеристики
     @Published var strength: Int
@@ -25,6 +24,12 @@ class Player: ObservableObject, Identifiable {
     @Published var damageTaken: Double = 0.0
     @Published var roundsWon: Int = 0
     
+    // Сделаем имя изменяемым
+    @Published var name: String
+    
+    // Ссылка на сохраненного персонажа (только для игрока)
+    var savedCharacter: PlayerCharacter?
+    
     private var cancellables = Set<AnyCancellable>()
     
     init(name: String, strength: Int, agility: Int, endurance: Int, wisdom: Int, intellect: Int) {
@@ -44,7 +49,20 @@ class Player: ObservableObject, Identifiable {
             .store(in: &cancellables)
     }
     
-    // Удобный инициализатор для предустановок
+    // Инициализатор из сохраненного персонажа
+    convenience init(from character: PlayerCharacter) {
+        self.init(
+            name: character.name,
+            strength: character.strength,
+            agility: character.agility,
+            endurance: character.endurance,
+            wisdom: character.wisdom,
+            intellect: character.intellect
+        )
+        self.savedCharacter = character
+    }
+    
+    // Удобный инициализатор для предустановок (для компьютера)
     convenience init(name: String, characterPreset: CharacterPreset) {
         switch characterPreset {
         case .warrior:
@@ -56,6 +74,11 @@ class Player: ObservableObject, Identifiable {
         case .balanced:
             self.init(name: name, strength: 5, agility: 5, endurance: 5, wisdom: 5, intellect: 5)
         }
+    }
+    
+    // Создание нового персонажа с распределением очков
+    convenience init() {
+        self.init(name: "Новый герой", strength: 5, agility: 5, endurance: 5, wisdom: 5, intellect: 5)
     }
     
     func resetSelections() {
@@ -104,6 +127,32 @@ class Player: ObservableObject, Identifiable {
                strength <= 10 && agility <= 10 && endurance <= 10 &&
                wisdom <= 10 && intellect <= 10 &&
                totalStats <= 25
+    }
+    
+    // Сохранение персонажа
+    func saveCharacter() {
+        var character: PlayerCharacter
+        if let existingCharacter = savedCharacter {
+            character = existingCharacter
+            // Обновляем статистику
+            character.recordBattleResult(
+                won: false, // Это обновляется после битвы
+                damageDealt: damageDealt,
+                damageTaken: damageTaken
+            )
+        } else {
+            character = PlayerCharacter(
+                name: name,
+                strength: strength,
+                agility: agility,
+                endurance: endurance,
+                wisdom: wisdom,
+                intellect: intellect
+            )
+        }
+        
+        DataManager.shared.saveCharacter(character)
+        savedCharacter = character
     }
 }
 

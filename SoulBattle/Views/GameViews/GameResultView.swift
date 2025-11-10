@@ -27,14 +27,103 @@ struct GameResultView: View {
                 PlayerStatsView(player: gameViewModel.player2)
             }
             
+            // Статистика персонажа (если есть сохраненный персонаж)
+            if let character = DataManager.shared.loadCharacter() {
+                VStack(spacing: 15) {
+                    Text("Ваша статистика")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    
+                    HStack(spacing: 30) {
+                        VStack(spacing: 5) {
+                            Text("Победы")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
+                            Text("\(character.battlesWon)")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.green)
+                        }
+                        
+                        VStack(spacing: 5) {
+                            Text("Поражения")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
+                            Text("\(character.battlesLost)")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.red)
+                        }
+                        
+                        VStack(spacing: 5) {
+                            Text("Побед %")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
+                            Text("\(String(format: "%.1f", character.winRate))%")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(character.winRate > 50 ? .green : .orange)
+                        }
+                    }
+                    
+                    HStack(spacing: 30) {
+                        VStack(spacing: 5) {
+                            Text("Всего урона")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
+                            Text("\(String(format: "%.0f", character.totalDamageDealt))")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .foregroundColor(.red)
+                        }
+                        
+                        VStack(spacing: 5) {
+                            Text("Получено")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
+                            Text("\(String(format: "%.0f", character.totalDamageTaken))")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .foregroundColor(.orange)
+                        }
+                    }
+                }
+                .padding()
+                .background(Color.white.opacity(0.1))
+                .cornerRadius(15)
+            }
+            
             // Итоговый лог
             GameResultLogView()
             
-            ActionButton(
-                title: "Новая игра",
-                action: { gameViewModel.resetGame() },
-                backgroundColor: .green
-            )
+            // Кнопки действий
+            VStack(spacing: 15) {
+                ActionButton(
+                    title: "Новая игра",
+                    action: {
+                        gameViewModel.resetGame()
+                        gameViewModel.gameState = .selection
+                    },
+                    backgroundColor: .green
+                )
+                
+                ActionButton(
+                    title: "В главное меню",
+                    action: {
+                        gameViewModel.backToMainMenu()
+                    },
+                    backgroundColor: .blue
+                )
+                
+                // Кнопка для создания нового персонажа
+                if DataManager.shared.loadCharacter() != nil {
+                    Button("Создать нового персонажа") {
+                        gameViewModel.gameState = .characterCreation
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.orange)
+                }
+            }
         }
         .padding()
     }
@@ -115,7 +204,7 @@ struct GameResultLogView: View {
                 LazyVStack(alignment: .leading, spacing: 3) {
                     ForEach(gameViewModel.gameLog, id: \.self) { logEntry in
                         Text(logEntry)
-                            .font(.system(size: 10, design: .monospaced))
+                            .font(.system(size: 12, design: .monospaced))
                             .foregroundColor(.white)
                             .padding(2)
                     }

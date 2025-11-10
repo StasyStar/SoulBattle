@@ -7,7 +7,7 @@ struct MainCoordinatorView: View {
         ZStack {
             // Фон
             LinearGradient(
-                gradient: Gradient(colors: [.purple, .blue]),
+                gradient: Gradient(colors: [.purple, .blue, .purple]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -15,6 +15,10 @@ struct MainCoordinatorView: View {
             
             // Контент в зависимости от состояния
             switch viewModel.gameState {
+            case .characterCreation:
+                CharacterCreationView()
+            case .mainMenu:
+                MainMenuView()
             case .setup:
                 PlayerSetupView()
             case .selection:
@@ -23,6 +27,12 @@ struct MainCoordinatorView: View {
                 BattleView()
             case .result:
                 GameResultView()
+            }
+        }
+        .onAppear {
+            // При запуске проверяем есть ли сохраненный персонаж
+            if !DataManager.shared.hasSavedCharacter() {
+                viewModel.gameState = .characterCreation
             }
         }
     }

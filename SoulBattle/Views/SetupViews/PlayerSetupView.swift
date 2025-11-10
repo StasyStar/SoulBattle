@@ -11,17 +11,28 @@ struct PlayerSetupView: View {
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 
-                Text("Создайте своих воинов")
+                Text("Настройка битвы")
                     .font(.title2)
                     .foregroundColor(.white.opacity(0.8))
                 
+                // Приветствие
+                if let character = DataManager.shared.loadCharacter() {
+                    Text("\(character.name), выберите характеристики противника")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .padding()
+                        .background(Color.purple.opacity(0.3))
+                        .cornerRadius(10)
+                }
+                
                 VStack(spacing: 20) {
-                    PlayerCardView(player: viewModel.player1, playerNumber: 1)
-                    PlayerCardView(player: viewModel.player2, playerNumber: 2)
+                    PlayerCardView(player: viewModel.player1, playerNumber: 1, isEditable: false)
+                    PlayerCardView(player: viewModel.player2, playerNumber: 2, isEditable: true)
                 }
                 
                 ActionButton(
-                    title: "Начать битву душ",
+                    title: "Начать битву",
                     action: { viewModel.startGame() },
                     isEnabled: true,
                     backgroundColor: .purple
@@ -37,17 +48,25 @@ struct PlayerSetupView: View {
 struct PlayerCardView: View {
     @ObservedObject var player: Player
     let playerNumber: Int
+    let isEditable: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 15) {
-            Text("Душа \(playerNumber)")
+            Text(playerNumber == 1 ? "Ваш персонаж" : "Противник")
                 .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
             
-            Text(player.name)
-                .font(.headline)
-                .foregroundColor(.white.opacity(0.9))
+            if isEditable {
+                TextField("Имя противника", text: $player.name)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .foregroundColor(.black)
+            } else {
+                Text(player.name)
+                    .font(.headline)
+                    .foregroundColor(.white.opacity(0.9))
+                    .padding(.vertical, 8)
+            }
             
             // Характеристики
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
@@ -66,6 +85,7 @@ struct PlayerCardView: View {
     }
 }
 
+// Добавляем StatView который отсутствовал
 struct StatView: View {
     let name: String
     let value: Int
@@ -75,12 +95,13 @@ struct StatView: View {
         HStack {
             Text(name)
                 .font(.caption)
+                .foregroundColor(.white)
             Spacer()
             Text("\(value)")
                 .font(.caption)
                 .fontWeight(.bold)
+                .foregroundColor(.white)
         }
-        .foregroundColor(.white)
         .padding(8)
         .background(color.opacity(0.3))
         .cornerRadius(8)
@@ -92,20 +113,15 @@ struct PresetSelectionView: View {
     
     var body: some View {
         VStack(spacing: 10) {
-            Text("Быстрые предустановки")
+            Text("Быстрые предустановки для противника")
                 .font(.headline)
                 .foregroundColor(.white)
-            
-            HStack(spacing: 10) {
-                Button("Воин") { applyPreset(.warrior, to: viewModel.player1) }
-                Button("Маг") { applyPreset(.mage, to: viewModel.player1) }
-                Button("Разбойник") { applyPreset(.rogue, to: viewModel.player1) }
-            }
             
             HStack(spacing: 10) {
                 Button("Воин") { applyPreset(.warrior, to: viewModel.player2) }
                 Button("Маг") { applyPreset(.mage, to: viewModel.player2) }
                 Button("Разбойник") { applyPreset(.rogue, to: viewModel.player2) }
+                Button("Сбалансированный") { applyPreset(.balanced, to: viewModel.player2) }
             }
         }
         .buttonStyle(PresetButtonStyle())
