@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CharacterCreationView: View {
     @EnvironmentObject var viewModel: GameViewModel
+    @Environment(\.dismiss) private var dismiss
     @State private var characterName: String = ""
     @State private var availablePoints: Int = 25
     @State private var strength: Int = 5
@@ -10,108 +11,137 @@ struct CharacterCreationView: View {
     @State private var wisdom: Int = 5
     @State private var intellect: Int = 5
     
+    var isRegistration: Bool = false
+    var username: String = ""
+    var password: String = ""
+    
     var body: some View {
-        ScrollView {
-            VStack(spacing: 30) {
-                Text("Создание персонажа")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                
-                // Имя персонажа
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Имя персонажа")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    
-                    TextField("Введите имя", text: $characterName)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .foregroundColor(.black)
-                }
-                
-                // Очки характеристик
+        ZStack {
+            // Фон
+            LinearGradient(
+                gradient: Gradient(colors: [Color.purple, Color.blue]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            ScrollView {
                 VStack(spacing: 15) {
-                    Text("Очки характеристик: \(availablePoints)")
+                    // Заголовок
+                    Text(isRegistration ? "Создание персонажа" : "Редактирование персонажа")
                         .font(.title2)
-                        .foregroundColor(availablePoints >= 0 ? .green : .red)
-                    
-                    if availablePoints < 0 {
-                        Text("Слишком много очков! Уберите \(abs(availablePoints))")
-                            .font(.caption)
-                            .foregroundColor(.red)
-                    }
-                    
-                    StatDistributionView(
-                        statName: "💪 Сила",
-                        value: $strength,
-                        availablePoints: $availablePoints,
-                        color: .red
-                    )
-                    
-                    StatDistributionView(
-                        statName: "🏃 Ловкость",
-                        value: $agility,
-                        availablePoints: $availablePoints,
-                        color: .green
-                    )
-                    
-                    StatDistributionView(
-                        statName: "❤️ Выносливость",
-                        value: $endurance,
-                        availablePoints: $availablePoints,
-                        color: .orange
-                    )
-                    
-                    StatDistributionView(
-                        statName: "📚 Мудрость",
-                        value: $wisdom,
-                        availablePoints: $availablePoints,
-                        color: .blue
-                    )
-                    
-                    StatDistributionView(
-                        statName: "🧠 Интеллект",
-                        value: $intellect,
-                        availablePoints: $availablePoints,
-                        color: .purple
-                    )
-                }
-                
-                // Предпросмотр персонажа
-                VStack(spacing: 10) {
-                    Text("Предпросмотр")
-                        .font(.headline)
+                        .fontWeight(.bold)
                         .foregroundColor(.white)
                     
-                    VStack(spacing: 5) {
-                        Text("Здоровье: \(String(format: "%.1f", 80.0 + Double(endurance) * 2.0))")
-                        Text("Сила атаки: \(calculateAttackPower())")
-                        Text("Защита: \(calculateDefense())")
+                    // Имя персонажа
+                    VStack(alignment: .leading) {
+                        Text("Имя персонажа")
+                            .foregroundColor(.white)
+                            .font(.subheadline)
+                        
+                        TextField("Введите имя", text: $characterName)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .foregroundColor(.black)
                     }
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.8))
-                    .padding()
-                    .background(Color.white.opacity(0.1))
-                    .cornerRadius(10)
-                }
-                
-                ActionButton(
-                    title: "Создать персонажа",
-                    action: createCharacter,
-                    isEnabled: availablePoints == 0 && !characterName.isEmpty,
-                    backgroundColor: .green
-                )
-                
-                // Кнопка загрузки существующего персонажа
-                if DataManager.shared.hasSavedCharacter() {
-                    Button("Загрузить сохраненного персонажа") {
-                        loadSavedCharacter()
+                    .padding(.horizontal)
+                    
+                    // Очки характеристик
+                    VStack {
+                        Text("Доступно очков: \(availablePoints)")
+                            .font(.headline)
+                            .foregroundColor(availablePoints >= 0 ? .green : .red)
+                            .padding(.bottom, 5)
+                        
+                        if availablePoints < 0 {
+                            Text("Слишком много очков! Уберите \(abs(availablePoints))")
+                                .foregroundColor(.red)
+                                .font(.caption2)
+                        }
                     }
-                    .buttonStyle(.bordered)
-                    .tint(.blue)
+                    
+                    // Все характеристики
+                    VStack(spacing: 10) {
+                        CharacteristicRow(
+                            name: "💪 Сила",
+                            value: $strength,
+                            availablePoints: $availablePoints,
+                            color: .red
+                        )
+                        
+                        CharacteristicRow(
+                            name: "🏃 Ловкость",
+                            value: $agility,
+                            availablePoints: $availablePoints,
+                            color: .green
+                        )
+                        
+                        CharacteristicRow(
+                            name: "❤️ Выносливость",
+                            value: $endurance,
+                            availablePoints: $availablePoints,
+                            color: .orange
+                        )
+                        
+                        CharacteristicRow(
+                            name: "📚 Мудрость",
+                            value: $wisdom,
+                            availablePoints: $availablePoints,
+                            color: .blue
+                        )
+                        
+                        CharacteristicRow(
+                            name: "🧠 Интеллект",
+                            value: $intellect,
+                            availablePoints: $availablePoints,
+                            color: .purple
+                        )
+                    }
+                    .padding(.horizontal)
+                    
+                    // Предпросмотр характеристик
+                    VStack(spacing: 8) {
+                        Text("Предпросмотр персонажа")
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                        
+                        VStack(spacing: 3) {
+                            Text("Здоровье: \(String(format: "%.1f", 80.0 + Double(endurance) * 2.0))")
+                            Text("Сила атаки: \(calculateAttackPower())")
+                            Text("Защита: \(calculateDefense())")
+                        }
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.8))
+                        .padding(8)
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    
+                    // Кнопки
+                    VStack(spacing: 10) {
+                        Button(isRegistration ? "Создать персонажа" : "Сохранить изменения") {
+                            saveCharacter()
+                        }
+                        .disabled(availablePoints != 0 || characterName.isEmpty)
+                        .foregroundColor(.white)
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity)
+                        .background(availablePoints == 0 && !characterName.isEmpty ? Color.green : Color.gray)
+                        .cornerRadius(8)
+                        .padding(.horizontal)
+                        
+                        Button("Отмена") {
+                            dismiss()
+                        }
+                        .foregroundColor(.white)
+                        .font(.subheadline)
+                    }
+                    .padding(.top, 5)
                 }
+                .padding(.vertical, 10)
             }
-            .padding()
+        }
+        .onAppear {
+            loadCurrentCharacter()
         }
     }
     
@@ -125,9 +155,9 @@ struct CharacterCreationView: View {
         return String(format: "%.1f", baseDefense)
     }
     
-    private func createCharacter() {
+    private func saveCharacter() {
         let character = PlayerCharacter(
-            name: characterName,
+            name: characterName.isEmpty ? username : characterName,
             strength: strength,
             agility: agility,
             endurance: endurance,
@@ -135,81 +165,100 @@ struct CharacterCreationView: View {
             intellect: intellect
         )
         
-        // Сохраняем персонажа
-        DataManager.shared.saveCharacter(character)
-        
-        // Создаем игрока из персонажа
-        viewModel.player1 = Player(from: character)
-        
-        // Переходим к выбору режима игры
-        viewModel.gameState = .mainMenu
+        if isRegistration {
+            let success = DataManager.shared.registerUser(username: username, password: password, character: character)
+            if success {
+                viewModel.player1 = Player(from: character)
+                DispatchQueue.main.async {
+                    viewModel.gameState = .mainMenu
+                    dismiss()
+                }
+            }
+        } else {
+            DataManager.shared.saveCharacter(character)
+            if DataManager.shared.getCurrentUser() != nil {
+                _ = DataManager.shared.updateCurrentUserCharacter(character)
+            }
+            viewModel.player1 = Player(from: character)
+            dismiss()
+        }
     }
     
-    private func loadSavedCharacter() {
-        if let savedCharacter = DataManager.shared.loadCharacter() {
-            viewModel.player1 = Player(from: savedCharacter)
-            viewModel.gameState = .mainMenu
+    private func loadCurrentCharacter() {
+        if let current = DataManager.shared.loadCharacter() {
+            characterName = current.name
+            strength = current.strength
+            agility = current.agility
+            endurance = current.endurance
+            wisdom = current.wisdom
+            intellect = current.intellect
+            
+            let used = strength + agility + endurance + wisdom + intellect - 25
+            availablePoints = 25 - used
+        } else if isRegistration {
+            characterName = username
         }
     }
 }
 
-struct StatDistributionView: View {
-    let statName: String
+struct CharacteristicRow: View {
+    let name: String
     @Binding var value: Int
     @Binding var availablePoints: Int
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(statName)
-                    .foregroundColor(.white)
-                
-                Spacer()
-                
-                Text("\(value)")
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .frame(width: 30)
-                
-                HStack(spacing: 5) {
-                    Button("-") {
-                        if value > 1 {
-                            value -= 1
-                            availablePoints += 1
-                        }
-                    }
-                    .buttonStyle(StatButtonStyle(color: color))
-                    .disabled(value <= 1)
-                    
-                    Button("+") {
-                        if availablePoints > 0 {
-                            value += 1
-                            availablePoints -= 1
-                        }
-                    }
-                    .buttonStyle(StatButtonStyle(color: color))
-                    .disabled(availablePoints <= 0)
-                }
-            }
+        HStack {
+            Text(name)
+                .foregroundColor(.white)
+                .font(.caption)
+                .frame(width: 110, alignment: .leading) // Увеличили ширину для полного слова
             
-            // Прогресс бар
-            ProgressView(value: Double(value), total: 10)
-                .progressViewStyle(LinearProgressViewStyle(tint: color))
+            Spacer()
+            
+            Text("\(value)")
+                .foregroundColor(.white)
+                .fontWeight(.bold)
+                .font(.caption)
+                .frame(width: 20)
+            
+            HStack(spacing: 8) {
+                Button("-") {
+                    if value > 1 {
+                        value -= 1
+                        availablePoints += 1
+                    }
+                }
+                .buttonStyle(CharacteristicButtonStyle(color: color))
+                .disabled(value <= 1)
+                
+                Button("+") {
+                    if availablePoints > 0 {
+                        value += 1
+                        availablePoints -= 1
+                    }
+                }
+                .buttonStyle(CharacteristicButtonStyle(color: color))
+                .disabled(availablePoints <= 0)
+            }
         }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .background(Color.white.opacity(0.1))
+        .cornerRadius(8)
     }
 }
 
-struct StatButtonStyle: ButtonStyle {
+struct CharacteristicButtonStyle: ButtonStyle {
     let color: Color
     
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.headline)
+            .font(.subheadline)
             .foregroundColor(.white)
-            .frame(width: 30, height: 30)
+            .frame(width: 25, height: 25)
             .background(color)
-            .cornerRadius(6)
+            .cornerRadius(5)
             .scaleEffect(configuration.isPressed ? 0.9 : 1.0)
     }
 }

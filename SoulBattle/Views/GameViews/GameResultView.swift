@@ -114,15 +114,6 @@ struct GameResultView: View {
                     },
                     backgroundColor: .blue
                 )
-                
-                // Кнопка для создания нового персонажа
-                if DataManager.shared.loadCharacter() != nil {
-                    Button("Создать нового персонажа") {
-                        gameViewModel.gameState = .characterCreation
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(.orange)
-                }
             }
         }
         .padding()

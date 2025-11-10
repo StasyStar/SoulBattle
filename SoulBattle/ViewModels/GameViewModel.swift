@@ -3,7 +3,7 @@ import Combine
 
 // Добавляем enum'ы и структуры ПЕРЕД классом GameViewModel
 enum GameState {
-    case characterCreation, mainMenu, setup, selection, battle, result
+    case authentication, characterCreation, mainMenu, setup, selection, battle, result
 }
 
 enum GameMode {
@@ -40,14 +40,16 @@ class GameViewModel: ObservableObject {
         // Проверяем есть ли сохраненный персонаж
         if let savedCharacter = DataManager.shared.loadCharacter() {
             self.player1 = Player(from: savedCharacter)
+            self.gameState = .mainMenu
         } else {
             self.player1 = Player(name: "Игрок", characterPreset: .warrior)
+            self.gameState = .authentication
         }
         
         self.player2 = Player(name: "Компьютер", characterPreset: .mage)
         
         setupPlayerObservers()
-        addToLog("Добро пожаловать в Soul Battle, \(player1.name)!")
+        addToLog("Добро пожаловать в Soul Battle!")
     }
     
     // МЕТОД ДЛЯ ПРИНУДИТЕЛЬНОГО ОБНОВЛЕНИЯ
