@@ -5,23 +5,19 @@ struct HealthBarView: View {
     let maxHealth: Double
     
     var body: some View {
-        VStack {
-            Text("\(String(format: "%.1f", health))/\(String(format: "%.0f", maxHealth))")
-                .font(.caption)
-                .foregroundColor(.white)
-            
+        VStack(spacing: 4) {
             ZStack(alignment: .leading) {
                 Rectangle()
-                    .frame(width: 100, height: 10)
+                    .frame(width: 120, height: 12)
                     .opacity(0.3)
                     .foregroundColor(.red)
                 
                 Rectangle()
-                    .frame(width: CGFloat(health / maxHealth * 100), height: 10)
+                    .frame(width: CGFloat(health / maxHealth * 120), height: 12)
                     .foregroundColor(health > 30 ? .green : .red)
                     .animation(.easeInOut, value: health)
             }
-            .cornerRadius(5)
+            .cornerRadius(6)
         }
     }
 }

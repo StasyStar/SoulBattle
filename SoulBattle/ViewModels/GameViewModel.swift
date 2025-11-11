@@ -27,6 +27,7 @@ class GameViewModel: ObservableObject {
     @Published var currentRound: Int = 1
     @Published var gameLog: [String] = []
     @Published var gameMode: GameMode = .pvp
+    @Published var opponentStatsInfo: String = ""
     
     @Published var player1: Player
     @Published var player2: Player
@@ -83,6 +84,7 @@ class GameViewModel: ObservableObject {
     func startGame() {
         gameState = .selection
         currentRound = 1
+        resetPlayerHealth() // Сбрасываем здоровье перед началом игры
         addToLog("Игра началась! \(player1.name) против \(player2.name)")
         
         // В PVE режиме сразу делаем случайные выборы за компьютер
@@ -100,6 +102,14 @@ class GameViewModel: ObservableObject {
         gameState = .battle
         addToLog("=== Раунд \(currentRound) ===")
         
+        // Добавляем информацию о выборах с иконками
+        let player1Selections = formatSelections(attacks: player1.selectedAttacks, defenses: player1.selectedDefenses)
+        let player2Selections = formatSelections(attacks: player2.selectedAttacks, defenses: player2.selectedDefenses)
+        
+        addToLog("\(player1.name): \(player1Selections)")
+        addToLog("\(player2.name): \(player2Selections)")
+        
+        // Остальной код метода остается без изменений...
         // Сохраняем выборы для отображения в результатах
         let player1Attacks = player1.selectedAttacks
         let player1Defenses = player1.selectedDefenses
@@ -130,8 +140,9 @@ class GameViewModel: ObservableObject {
             player2HealthAfter: player2.health
         )
         
-        addToLog("\(player1.name): \(String(format: "%.1f", player1.health)) HP")
-        addToLog("\(player2.name): \(String(format: "%.1f", player2.health)) HP")
+        // Добавляем информацию об остатке HP
+        addToLog("\(player1.name): \(String(format: "%.0f", player1.health)) HP")
+        addToLog("\(player2.name): \(String(format: "%.0f", player2.health)) HP")
         
         // Проверка окончания игры
         if player1.health <= 0 || player2.health <= 0 {
@@ -246,5 +257,39 @@ class GameViewModel: ObservableObject {
     
     private func addToLog(_ message: String) {
         gameLog.append(message)
+    }
+    
+    func resetPlayerHealth() {
+        player1.health = player1.maxHealth
+        player2.health = player2.maxHealth
+    }
+    
+    // Метод для получения иконки атаки
+    private func getAttackIcon(_ attack: AttackType) -> String {
+        switch attack {
+        case .fire: return "🔥"
+        case .lightning: return "⚡️"
+        case .weapon: return "🗡️"
+        case .acid: return "💧"
+        case .psycho: return "🧠"
+        }
+    }
+
+    // Метод для получения иконки защиты
+    private func getDefenseIcon(_ defense: DefenseType) -> String {
+        switch defense {
+        case .fire: return "🔥"
+        case .lightning: return "⚡️"
+        case .weapon: return "🗡️"
+        case .acid: return "💧"
+        case .psycho: return "🧠"
+        }
+    }
+
+    // Метод для форматирования выбора атак и защит
+    private func formatSelections(attacks: [AttackType], defenses: [DefenseType]) -> String {
+        let attackIcons = attacks.map { getAttackIcon($0) }.joined(separator: " + ")
+        let defenseIcons = defenses.map { getDefenseIcon($0) }.joined(separator: " + ")
+        return "Атака: \(attackIcons), Защита: \(defenseIcons)"
     }
 }

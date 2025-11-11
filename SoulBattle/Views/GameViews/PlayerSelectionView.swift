@@ -7,103 +7,64 @@ struct PlayerSelectionView: View {
     let gameViewModel: GameViewModel
     
     var body: some View {
-        VStack(spacing: 15) {
-            Text("\(playerName)")
-                .font(.headline)
-                .foregroundColor(.white)
-            
-            Text("Здоровье: \(String(format: "%.1f", player.health))")
-                .font(.caption)
-                .foregroundColor(.white)
+        VStack(spacing: 10) {
+            // Заголовок с именем и здоровьем
+            VStack(spacing: 6) {
+                Text(playerName)
+                    .font(.headline)
+                    .foregroundColor(.white)
+                
+                // Здоровье со шкалой
+                VStack(spacing: 3) {
+                    Text("\(String(format: "%.0f", player.health))/\(String(format: "%.0f", player.maxHealth)) HP")
+                        .font(.caption)
+                        .foregroundColor(.white)
+                    
+                    HealthBarView(health: player.health, maxHealth: player.maxHealth)
+                }
+            }
             
             // Атаки
-            VStack(alignment: .leading) {
-                Text("Атаки (2):")
-                    .font(.subheadline)
-                    .foregroundColor(.red)
+            VStack(alignment: .leading, spacing: 6) {
+                // Заголовок без чекбоксов
+                HStack {
+                    Text("Атаки (\(player.selectedAttacks.count)/2)")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                    
+                    Spacer()
+                }
                 
                 ForEach(AttackType.allCases, id: \.self) { attack in
-                    Button(action: {
-                        toggleAttack(attack)
-                    }) {
-                        HStack {
-                            Image(systemName: attack.icon)
-                            Text(attack.rawValue)
-                                .font(.caption)
-                            Spacer()
-                            if player.selectedAttacks.contains(attack) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                            }
-                        }
-                        .padding(10)
-                        .background(player.selectedAttacks.contains(attack) ? Color.red.opacity(0.3) : Color.gray.opacity(0.2))
-                        .foregroundColor(player.selectedAttacks.contains(attack) ? .red : .primary)
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(player.selectedAttacks.contains(attack) ? Color.red : Color.gray, lineWidth: 1)
-                        )
-                    }
+                    CompactAttackButton(
+                        attackType: attack,
+                        isSelected: player.selectedAttacks.contains(attack),
+                        action: { toggleAttack(attack) }
+                    )
                 }
             }
             
             // Защиты
-            VStack(alignment: .leading) {
-                Text("Защиты (2):")
-                    .font(.subheadline)
-                    .foregroundColor(.blue)
+            VStack(alignment: .leading, spacing: 6) {
+                // Заголовок без чекбоксов
+                HStack {
+                    Text("Защиты (\(player.selectedDefenses.count)/2)")
+                        .font(.subheadline)
+                        .foregroundColor(Color.blue.opacity(0.9)) // Более темный синий
+                    
+                    Spacer()
+                }
                 
                 ForEach(DefenseType.allCases, id: \.self) { defense in
-                    Button(action: {
-                        toggleDefense(defense)
-                    }) {
-                        HStack {
-                            Image(systemName: defense.icon)
-                            Text(defense.rawValue)
-                                .font(.caption)
-                            Spacer()
-                            if player.selectedDefenses.contains(defense) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                            }
-                        }
-                        .padding(10)
-                        .background(player.selectedDefenses.contains(defense) ? Color.blue.opacity(0.3) : Color.gray.opacity(0.2))
-                        .foregroundColor(player.selectedDefenses.contains(defense) ? .blue : .primary)
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(player.selectedDefenses.contains(defense) ? Color.blue : Color.gray, lineWidth: 1)
-                        )
-                    }
-                }
-            }
-            
-            // Статус выбора
-            VStack(spacing: 5) {
-                if player.selectedAttacks.count == 2 {
-                    Text("✅ Атаки выбраны")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                } else {
-                    Text("Атаки: \(player.selectedAttacks.count)/2")
-                        .font(.caption)
-                        .foregroundColor(.yellow)
-                }
-                
-                if player.selectedDefenses.count == 2 {
-                    Text("✅ Защиты выбраны")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                } else {
-                    Text("Защиты: \(player.selectedDefenses.count)/2")
-                        .font(.caption)
-                        .foregroundColor(.yellow)
+                    CompactDefenseButton(
+                        defenseType: defense,
+                        isSelected: player.selectedDefenses.contains(defense),
+                        action: { toggleDefense(defense) }
+                    )
                 }
             }
         }
-        .padding()
+        .padding(12)
         .background(Color.white.opacity(0.1))
         .cornerRadius(10)
     }

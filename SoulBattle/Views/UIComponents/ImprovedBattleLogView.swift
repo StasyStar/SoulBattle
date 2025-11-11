@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct BattleLogView: View {
+struct ImprovedBattleLogView: View {
     @EnvironmentObject var gameViewModel: GameViewModel
     
     var body: some View {
@@ -10,21 +10,24 @@ struct BattleLogView: View {
                 .foregroundColor(.white)
             
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 4) { // Уменьшили spacing
-                    ForEach(gameViewModel.gameLog.suffix(8), id: \.self) { logEntry in
+                LazyVStack(alignment: .leading, spacing: 2) {
+                    ForEach(gameViewModel.gameLog.suffix(15), id: \.self) { logEntry in
+                        // Пропускаем строку о начале игры
                         if !logEntry.contains("Игра началась!") && !logEntry.contains("против") {
                             Text(logEntry)
-                                .font(.system(size: 11, design: .monospaced)) // Уменьшили шрифт
+                                .font(.system(size: 10, design: .monospaced))
                                 .foregroundColor(.white)
-                                .padding(2)
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 1)
                         }
                     }
                 }
             }
-            .frame(height: 100) // Уменьшили высоту
-            .padding()
+            .frame(height: 100) // Увеличили высоту для лучшей читаемости
+            .padding(8)
             .background(Color.black.opacity(0.3))
             .cornerRadius(8)
         }
+        .padding(.horizontal)
     }
 }

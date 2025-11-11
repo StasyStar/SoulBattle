@@ -1,6 +1,10 @@
 import Foundation
 import Combine
 
+enum CharacterPreset {
+    case warrior, mage, rogue, balanced
+}
+
 class Player: ObservableObject, Identifiable {
     let id = UUID()
     
@@ -26,6 +30,11 @@ class Player: ObservableObject, Identifiable {
     
     // Сделаем имя изменяемым
     @Published var name: String
+    
+    // Система уровней
+    @Published var level: Int = 1
+    @Published var experience: Int = 0
+    @Published var availableStatPoints: Int = 0
     
     // Ссылка на сохраненного персонажа (только для игрока)
     var savedCharacter: PlayerCharacter?
@@ -60,6 +69,9 @@ class Player: ObservableObject, Identifiable {
             intellect: character.intellect
         )
         self.savedCharacter = character
+        self.level = character.level
+        self.experience = character.experience
+        self.availableStatPoints = character.availableStatPoints
     }
     
     // Удобный инициализатор для предустановок (для компьютера)
@@ -126,7 +138,11 @@ class Player: ObservableObject, Identifiable {
                wisdom >= 1 && intellect >= 1 &&
                strength <= 10 && agility <= 10 && endurance <= 10 &&
                wisdom <= 10 && intellect <= 10 &&
-               totalStats <= 25
+               totalStats <= 25 + (level - 1) * 2 // Учитываем дополнительные очки за уровни
+    }
+    
+    var experienceToNextLevel: Int {
+        level * 100 + 50
     }
     
     // Сохранение персонажа
@@ -154,8 +170,4 @@ class Player: ObservableObject, Identifiable {
         DataManager.shared.saveCharacter(character)
         savedCharacter = character
     }
-}
-
-enum CharacterPreset {
-    case warrior, mage, rogue, balanced
 }
