@@ -13,7 +13,6 @@ struct AuthenticationView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 30) {
-                // Заголовок
                 VStack(spacing: 10) {
                     Text("Soul Battle")
                         .font(.system(size: 50, weight: .bold, design: .rounded))
@@ -25,7 +24,6 @@ struct AuthenticationView: View {
                         .foregroundColor(.white.opacity(0.8))
                 }
                 
-                // Форма
                 VStack(spacing: 20) {
                     TextField("Имя пользователя", text: $username)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -41,7 +39,6 @@ struct AuthenticationView: View {
                     }
                 }
                 
-                // Основные кнопки
                 VStack(spacing: 15) {
                     ActionButton(
                         title: isLoginMode ? "Войти" : "Зарегистрироваться",
@@ -55,7 +52,6 @@ struct AuthenticationView: View {
                     }
                     .foregroundColor(.white)
                     
-                    // Гость
                     if isLoginMode {
                         Button("Войти как гость") {
                             enterAsGuest()
@@ -64,7 +60,6 @@ struct AuthenticationView: View {
                     }
                 }
                 
-                // Информация о режиме гостя
                 if isLoginMode {
                     VStack(spacing: 10) {
                         Text("Гостевой режим")
@@ -109,7 +104,6 @@ struct AuthenticationView: View {
         if isLoginMode {
             loginUser()
         } else {
-            // Для регистрации показываем создание персонажа
             showCharacterCreation = true
         }
     }
@@ -131,7 +125,6 @@ struct AuthenticationView: View {
     }
     
     private func enterAsGuest() {
-        // Создаем временного персонажа для гостя
         let guestCharacter = PlayerCharacter(
             name: "Гость",
             strength: 5,

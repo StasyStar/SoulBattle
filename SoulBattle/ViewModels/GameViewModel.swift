@@ -1,7 +1,6 @@
 import SwiftUI
 import Combine
 
-// Добавляем enum'ы и структуры ПЕРЕД классом GameViewModel
 enum GameState {
     case authentication, characterCreation, mainMenu, setup, selection, battle, result
 }
@@ -35,10 +34,10 @@ class GameViewModel: ObservableObject {
     @Published var roundDetails: RoundDetails?
     
     private let battleSystem = BattleSystem()
+    private let aiSystem = AISystem()
     private var cancellables = Set<AnyCancellable>()
     
     init() {
-        // Проверяем есть ли сохраненный персонаж
         if let savedCharacter = DataManager.shared.loadCharacter() {
             self.player1 = Player(from: savedCharacter)
             self.gameState = .mainMenu
@@ -53,12 +52,10 @@ class GameViewModel: ObservableObject {
         addToLog("Добро пожаловать в Soul Battle!")
     }
     
-    // МЕТОД ДЛЯ ПРИНУДИТЕЛЬНОГО ОБНОВЛЕНИЯ
     func forceUpdate() {
         self.objectWillChange.send()
     }
     
-    // MARK: - Game Mode Management
     func startPVPGame() {
         gameMode = .pvp
         player1.name = DataManager.shared.loadCharacter()?.name ?? "Игрок 1"
@@ -76,8 +73,8 @@ class GameViewModel: ObservableObject {
         gameState = .setup
         addToLog("Режим: Игрок vs Компьютер")
         
-        // Сразу делаем случайные выборы за компьютер
-        makeRandomAISelections()
+        // Выбор за компьютер
+        makeAISelections()
     }
     
     // MARK: - Game Flow
@@ -87,9 +84,9 @@ class GameViewModel: ObservableObject {
         resetPlayerHealth() // Сбрасываем здоровье перед началом игры
         addToLog("Игра началась! \(player1.name) против \(player2.name)")
         
-        // В PVE режиме сразу делаем случайные выборы за компьютер
+        // В PVE выбор за компьютер
         if gameMode == .pve {
-            makeRandomAISelections()
+            makeAISelections()
         }
     }
     
@@ -102,54 +99,47 @@ class GameViewModel: ObservableObject {
         gameState = .battle
         addToLog("=== Раунд \(currentRound) ===")
         
-        // Добавляем информацию о выборах с иконками
         let player1Selections = formatSelections(attacks: player1.selectedAttacks, defenses: player1.selectedDefenses)
         let player2Selections = formatSelections(attacks: player2.selectedAttacks, defenses: player2.selectedDefenses)
         
         addToLog("\(player1.name): \(player1Selections)")
         addToLog("\(player2.name): \(player2Selections)")
         
-        // Сохраняем выборы для отображения в результатах
         let player1Attacks = player1.selectedAttacks
         let player1Defenses = player1.selectedDefenses
         let player2Attacks = player2.selectedAttacks
         let player2Defenses = player2.selectedDefenses
         
-        // Расчет урона
         let damageToPlayer2 = battleSystem.calculateDamage(attacker: player1, defender: player2)
         let damageToPlayer1 = battleSystem.calculateDamage(attacker: player2, defender: player1)
         
-        // Применение урона - ВАЖНО: правильный порядок!
-        player2.takeDamage(damageToPlayer2)  // Игрок 1 наносит урон игроку 2
-        player1.takeDamage(damageToPlayer1)  // Игрок 2 наносит урон игроку 1
+        player2.takeDamage(damageToPlayer2)
+        player1.takeDamage(damageToPlayer1)
         
-        // Учет нанесенного урона - ВАЖНО: правильный порядок!
-        player1.dealDamage(damageToPlayer2)  // Игрок 1 нанес этот урон
-        player2.dealDamage(damageToPlayer1)  // Игрок 2 нанес этот урон
+        player1.dealDamage(damageToPlayer2)
+        player2.dealDamage(damageToPlayer1)
         
-        // Создаем детали раунда для отображения
         roundDetails = RoundDetails(
             roundNumber: currentRound,
             player1Attacks: player1Attacks,
             player1Defenses: player1Defenses,
             player2Attacks: player2Attacks,
             player2Defenses: player2Defenses,
-            player1DamageDealt: damageToPlayer2,  // Игрок 1 нанес игроку 2
-            player2DamageDealt: damageToPlayer1,  // Игрок 2 нанес игроку 1
+            player1DamageDealt: damageToPlayer2,
+            player2DamageDealt: damageToPlayer1,
             player1HealthAfter: player1.health,
             player2HealthAfter: player2.health
         )
         
-        // Добавляем информацию об уроне в лог
+        // Добавление информацию об уроне в лог
         addToLog("\(player1.name) нанес \(String(format: "%.1f", damageToPlayer2)) урона")
         addToLog("\(player2.name) нанес \(String(format: "%.1f", damageToPlayer1)) урона")
         addToLog("\(player1.name): \(String(format: "%.0f", player1.health)) HP")
         addToLog("\(player2.name): \(String(format: "%.0f", player2.health)) HP")
         
-        // Определяем победителя раунда и начисляем победы
+        // Определение победителя раунда
         determineRoundWinner()
         
-        // Проверка окончания игры
         if player1.health <= 0 || player2.health <= 0 {
             endGame()
         } else {
@@ -157,17 +147,23 @@ class GameViewModel: ObservableObject {
             resetSelections()
             gameState = .selection
             
-            // В PVE режиме делаем новые случайные выборы для компьютера
             if gameMode == .pve {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    self.makeRandomAISelections()
+                    self.makeAISelections()
                 }
             }
         }
     }
     
+    private func makeAISelections() {
+        let selections = aiSystem.makeSelections(for: player2, against: player1)
+        player2.selectedAttacks = selections.attacks
+        player2.selectedDefenses = selections.defenses
+        
+        self.objectWillChange.send()
+    }
+    
     private func determineRoundWinner() {
-        // Победитель раунда - тот, кто нанес больше урона в этом раунде
         if let details = roundDetails {
             if details.player1DamageDealt > details.player2DamageDealt {
                 player1.roundsWon += 1
@@ -180,21 +176,6 @@ class GameViewModel: ObservableObject {
             }
         }
     }
-    
-    private func makeRandomAISelections() {
-        // Случайные атаки
-        let randomAttacks = AttackType.allCases.shuffled().prefix(2)
-        player2.selectedAttacks = Array(randomAttacks)
-        
-        // Случайные защиты
-        let randomDefenses = DefenseType.allCases.shuffled().prefix(2)
-        player2.selectedDefenses = Array(randomDefenses)
-        
-        // Принудительно обновляем после выбора
-        self.objectWillChange.send()
-    }
-    
-    // MARK: - Reset and Utilities
     
     func areSelectionsValid() -> Bool {
         let player1Ready = player1.selectedAttacks.count == 2 &&
@@ -228,16 +209,15 @@ class GameViewModel: ObservableObject {
         player1.resetSelections()
         player2.resetSelections()
         
-        // В PVE режиме сразу делаем случайные выборы для компьютера
         if gameMode == .pve {
-            makeRandomAISelections()
+            makeAISelections()
         }
     }
     
     private func endGame() {
         gameState = .result
         
-        // Определяем победителя и обновляем статистику
+        // Определение победителя и обновление статистики
         if player1.health <= 0 && player2.health <= 0 {
             addToLog("НИЧЬЯ! Оба игрока пали в бою!")
             // За ничью тоже даем немного опыта
@@ -257,35 +237,21 @@ class GameViewModel: ObservableObject {
         if var character = DataManager.shared.loadCharacter() {
             let oldLevel = character.level
             
-            // Записываем результат битвы
             character.recordBattleResult(
                 won: won,
                 damageDealt: player1.damageDealt,
                 damageTaken: player1.damageTaken
             )
             
-            // Сохраняем персонажа
             DataManager.shared.saveCharacter(character)
             
-            // Проверяем, был ли получен новый уровень
+            // Проверка, был ли получен новый уровень
             if character.level > oldLevel {
                 let levelsGained = character.level - oldLevel
                 addToLog("🎉 Получен \(character.level) уровень! +\(levelsGained * 2) очков характеристик")
             }
             
-            // Обновляем игрока
             player1 = Player(from: character)
-        }
-    }
-    
-    private func updateCharacterStatistics(won: Bool) {
-        if var character = DataManager.shared.loadCharacter() {
-            character.recordBattleResult(
-                won: won,
-                damageDealt: player1.damageDealt,
-                damageTaken: player1.damageTaken
-            )
-            DataManager.shared.saveCharacter(character)
         }
     }
     
@@ -312,7 +278,7 @@ class GameViewModel: ObservableObject {
         player2.health = player2.maxHealth
     }
     
-    // Метод для получения иконки атаки
+    // Получение иконки атаки
     private func getAttackIcon(_ attack: AttackType) -> String {
         switch attack {
         case .fire: return "🔥"
@@ -323,7 +289,7 @@ class GameViewModel: ObservableObject {
         }
     }
 
-    // Метод для получения иконки защиты
+    // Получение иконки защиты
     private func getDefenseIcon(_ defense: DefenseType) -> String {
         switch defense {
         case .fire: return "🔥"
@@ -334,7 +300,6 @@ class GameViewModel: ObservableObject {
         }
     }
 
-    // Метод для форматирования выбора атак и защит
     private func formatSelections(attacks: [AttackType], defenses: [DefenseType]) -> String {
         let attackIcons = attacks.map { getAttackIcon($0) }.joined(separator: " + ")
         let defenseIcons = defenses.map { getDefenseIcon($0) }.joined(separator: " + ")

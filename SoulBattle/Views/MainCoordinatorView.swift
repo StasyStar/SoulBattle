@@ -6,7 +6,6 @@ struct MainCoordinatorView: View {
     
     var body: some View {
         ZStack {
-            // Фон
             LinearGradient(
                 gradient: Gradient(colors: [.purple, .blue, .purple]),
                 startPoint: .topLeading,
@@ -14,7 +13,6 @@ struct MainCoordinatorView: View {
             )
             .ignoresSafeArea()
             
-            // Контент в зависимости от состояния
             switch viewModel.gameState {
             case .authentication:
                 AuthenticationView()

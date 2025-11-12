@@ -22,7 +22,7 @@ struct BattleSelectionView: View {
                 // Основной контент
                 VStack(spacing: 12) {
                     HStack(alignment: .top, spacing: 10) {
-                        // Игрок 1
+                        // Игрок
                         PlayerSelectionView(
                             player: gameViewModel.player1,
                             playerName: gameViewModel.player1.name,
@@ -30,7 +30,7 @@ struct BattleSelectionView: View {
                             gameViewModel: gameViewModel
                         )
                         
-                        // Игрок 2 / Компьютер
+                        // Компьютер
                         if gameViewModel.gameMode == .pvp {
                             PlayerSelectionView(
                                 player: gameViewModel.player2,
@@ -43,13 +43,12 @@ struct BattleSelectionView: View {
                         }
                     }
                     
-                    // Информация о противнике для PVP
                     if gameViewModel.gameMode == .pvp && !gameViewModel.opponentStatsInfo.isEmpty {
                         OpponentStatsView()
                     }
                     
                     // Лог битвы с HP
-                    ImprovedBattleLogView()
+                    BattleLogView()
                     
                     // Кнопки действий
                     ActionButtonsView()
@@ -78,7 +77,6 @@ struct BattleSelectionView: View {
     }
 }
 
-// Вспомогательные View для лучшей организации кода
 struct AIPlayerView: View {
     @EnvironmentObject var gameViewModel: GameViewModel
     

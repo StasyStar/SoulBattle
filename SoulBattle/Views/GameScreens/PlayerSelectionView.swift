@@ -8,13 +8,11 @@ struct PlayerSelectionView: View {
     
     var body: some View {
         VStack(spacing: 10) {
-            // Заголовок с именем и здоровьем
             VStack(spacing: 6) {
                 Text(playerName)
                     .font(.headline)
                     .foregroundColor(.white)
                 
-                // Здоровье со шкалой
                 VStack(spacing: 3) {
                     Text("\(String(format: "%.0f", player.health))/\(String(format: "%.0f", player.maxHealth)) HP")
                         .font(.caption)
@@ -24,9 +22,7 @@ struct PlayerSelectionView: View {
                 }
             }
             
-            // Атаки
             VStack(alignment: .leading, spacing: 6) {
-                // Заголовок без чекбоксов
                 HStack {
                     Text("Атаки (\(player.selectedAttacks.count)/2)")
                         .font(.subheadline)
@@ -44,9 +40,7 @@ struct PlayerSelectionView: View {
                 }
             }
             
-            // Защиты
             VStack(alignment: .leading, spacing: 6) {
-                // Заголовок без чекбоксов
                 HStack {
                     Text("Защиты (\(player.selectedDefenses.count)/2)")
                         .font(.subheadline)

@@ -4,12 +4,12 @@ struct CharacterCreationView: View {
     @EnvironmentObject var viewModel: GameViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var characterName: String = ""
-    @State private var availablePoints: Int = 25
-    @State private var strength: Int = 5
-    @State private var agility: Int = 5
-    @State private var endurance: Int = 5
-    @State private var wisdom: Int = 5
-    @State private var intellect: Int = 5
+    @State private var availablePoints: Int = GameConstants.Balance.startingExtraPoints
+    @State private var strength: Int = GameConstants.Rules.minStatValue
+    @State private var agility: Int = GameConstants.Rules.minStatValue
+    @State private var endurance: Int = GameConstants.Rules.minStatValue
+    @State private var wisdom: Int = GameConstants.Rules.minStatValue
+    @State private var intellect: Int = GameConstants.Rules.minStatValue
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     
@@ -17,13 +17,8 @@ struct CharacterCreationView: View {
     var username: String = ""
     var password: String = ""
     
-    // Константы
-    private let BASE_STATS_POINTS = 25 // 5 * 5 = 25 базовых очков
-    private let STARTING_EXTRA_POINTS = 25 // 25 дополнительных очков при создании
-    
     var body: some View {
         ZStack {
-            // Фон
             LinearGradient(
                 gradient: Gradient(colors: [Color.purple, Color.blue]),
                 startPoint: .topLeading,
@@ -33,13 +28,11 @@ struct CharacterCreationView: View {
             
             ScrollView {
                 VStack(spacing: 15) {
-                    // Заголовок
                     Text(isRegistration ? "Создание персонажа" : "Редактирование персонажа")
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                     
-                    // Информация об уровне (только для редактирования)
                     if !isRegistration, let currentCharacter = DataManager.shared.loadCharacter() {
                         VStack(spacing: 8) {
                             HStack {
@@ -60,7 +53,6 @@ struct CharacterCreationView: View {
                                 }
                             }
                             
-                            // Прогресс опыта
                             VStack(alignment: .leading, spacing: 4) {
                                 HStack {
                                     Text("Опыт: \(currentCharacter.experience)/\(currentCharacter.experienceToNextLevel)")
@@ -81,7 +73,6 @@ struct CharacterCreationView: View {
                         .cornerRadius(10)
                     }
                     
-                    // Имя персонажа
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Имя персонажа")
                             .foregroundColor(.white)
@@ -93,7 +84,6 @@ struct CharacterCreationView: View {
                     }
                     .padding(.horizontal)
                     
-                    // Очки характеристик
                     VStack(spacing: 15) {
                         Text("Доступно очков: \(availablePoints)")
                             .font(.headline)
@@ -143,7 +133,6 @@ struct CharacterCreationView: View {
                     }
                     .padding(.horizontal)
                     
-                    // Предпросмотр характеристик
                     VStack(spacing: 8) {
                         Text("Предпросмотр персонажа")
                             .font(.subheadline)
@@ -161,7 +150,6 @@ struct CharacterCreationView: View {
                         .cornerRadius(8)
                     }
                     
-                    // Кнопки
                     VStack(spacing: 10) {
                         Button(isRegistration ? "Создать персонажа" : "Сохранить изменения") {
                             if isRegistration {
@@ -209,7 +197,7 @@ struct CharacterCreationView: View {
     }
     
     private func calculateDefense() -> String {
-        let baseDefense = Double(endurance) * 2.0
+        let baseDefense = Double(endurance) * GameConstants.Balance.healthPerEndurance
         return String(format: "%.1f", baseDefense)
     }
     
@@ -241,7 +229,6 @@ struct CharacterCreationView: View {
     private func updateCharacter() {
         guard let currentCharacter = DataManager.shared.loadCharacter() else { return }
         
-        // Создаем обновленного персонажа
         var updatedCharacter = PlayerCharacter(
             name: characterName,
             strength: strength,
@@ -251,7 +238,6 @@ struct CharacterCreationView: View {
             intellect: intellect
         )
         
-        // Сохраняем весь прогресс
         updatedCharacter.level = currentCharacter.level
         updatedCharacter.experience = currentCharacter.experience
         updatedCharacter.battlesWon = currentCharacter.battlesWon
@@ -259,20 +245,14 @@ struct CharacterCreationView: View {
         updatedCharacter.totalDamageDealt = currentCharacter.totalDamageDealt
         updatedCharacter.totalDamageTaken = currentCharacter.totalDamageTaken
         updatedCharacter.creationDate = currentCharacter.creationDate
-        
-        // ВАЖНО: totalBonusPoints НЕ ИЗМЕНЯЕМ при сохранении!
-        // Это общее количество полученных бонусных очков, оно должно сохраняться
         updatedCharacter.totalBonusPoints = currentCharacter.totalBonusPoints
         
-        // Сохраняем персонажа
         DataManager.shared.saveCharacter(updatedCharacter)
         
-        // Обновляем данные в аккаунте
         if DataManager.shared.getCurrentUser() != nil {
             _ = DataManager.shared.updateCurrentUserCharacter(updatedCharacter)
         }
         
-        // Обновляем игрока
         viewModel.player1 = Player(from: updatedCharacter)
         
         print("=== СОХРАНЕНИЕ ===")
@@ -285,7 +265,6 @@ struct CharacterCreationView: View {
     
     private func loadCurrentCharacter() {
         if let currentCharacter = DataManager.shared.loadCharacter() {
-            // Загружаем текущие значения
             characterName = currentCharacter.name
             strength = currentCharacter.strength
             agility = currentCharacter.agility
@@ -293,11 +272,11 @@ struct CharacterCreationView: View {
             wisdom = currentCharacter.wisdom
             intellect = currentCharacter.intellect
             
-            // ВАЖНО: Правильный расчет доступных очков
             let totalCurrentStats = strength + agility + endurance + wisdom + intellect
-            let totalAvailablePoints = BASE_STATS_POINTS + STARTING_EXTRA_POINTS + currentCharacter.totalBonusPoints
+            let totalAvailablePoints = GameConstants.Balance.baseStatPoints +
+                                     GameConstants.Balance.startingExtraPoints +
+                                     currentCharacter.totalBonusPoints
             
-            // Доступные очки = Всего доступно - Уже потрачено
             availablePoints = totalAvailablePoints - totalCurrentStats
             
             print("=== ЗАГРУЗКА ===")
@@ -308,14 +287,13 @@ struct CharacterCreationView: View {
             print("Осталось доступных очков: \(availablePoints)")
             
         } else if isRegistration {
-            // Создание нового персонажа
-            characterName = username.isEmpty ? "Новый герой" : username
-            strength = 5
-            agility = 5
-            endurance = 5
-            wisdom = 5
-            intellect = 5
-            availablePoints = 25
+            characterName = username.isEmpty ? GameConstants.Defaults.playerName : username
+            strength = GameConstants.Rules.minStatValue
+            agility = GameConstants.Rules.minStatValue
+            endurance = GameConstants.Rules.minStatValue
+            wisdom = GameConstants.Rules.minStatValue
+            intellect = GameConstants.Rules.minStatValue
+            availablePoints = GameConstants.Balance.startingExtraPoints
         }
     }
 }

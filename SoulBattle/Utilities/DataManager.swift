@@ -10,8 +10,6 @@ class DataManager {
     
     private init() {}
     
-    // MARK: - Character Management
-    
     func saveCharacter(_ character: PlayerCharacter) {
         let encoder = JSONEncoder()
         if let encoded = try? encoder.encode(character) {
@@ -37,12 +35,10 @@ class DataManager {
         return loadCharacter() != nil
     }
     
-    // MARK: - User Management
-    
     func registerUser(username: String, password: String, character: PlayerCharacter) -> Bool {
         var users = getAllUsers()
         
-        // Проверяем, не занят ли username
+        // Проверка username
         if users.contains(where: { $0.username == username }) {
             return false
         }
@@ -64,9 +60,9 @@ class DataManager {
             return false
         }
         
-        // Сохраняем текущего пользователя
+        // Сохранение текущего пользователя
         setCurrentUser(username)
-        // Загружаем персонажа
+        // Загрузка персонажа
         saveCharacter(user.character)
         return true
     }
@@ -124,8 +120,6 @@ class DataManager {
         )
     }
     
-    // MARK: - Private Methods
-    
     private func setCurrentUser(_ username: String) {
         userDefaults.set(username, forKey: currentUserKey)
     }
@@ -147,31 +141,5 @@ class DataManager {
             return true
         }
         return false
-    }
-}
-
-// MARK: - User Account Model
-
-struct UserAccount: Codable {
-    let username: String
-    let password: String
-    var character: PlayerCharacter
-    let registrationDate: Date
-}
-
-struct UserStatistics {
-    let username: String
-    let registrationDate: Date
-    let character: PlayerCharacter
-    
-    var playTime: String {
-        let interval = Date().timeIntervalSince(registrationDate)
-        let hours = Int(interval) / 3600
-        let minutes = (Int(interval) % 3600) / 60
-        return "\(hours)ч \(minutes)м"
-    }
-    
-    var battlesPlayed: Int {
-        return character.battlesWon + character.battlesLost
     }
 }

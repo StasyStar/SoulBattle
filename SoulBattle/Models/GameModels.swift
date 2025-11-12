@@ -1,6 +1,46 @@
 import Foundation
 import Combine
 
+enum AttackType: String, CaseIterable, Identifiable {
+    case fire = "Огненная атака"
+    case lightning = "Атака молнией"
+    case weapon = "Атака оружием"
+    case acid = "Кислотная атака"
+    case psycho = "Психо-атака"
+    
+    var id: String { rawValue }
+    
+    var icon: String {
+        switch self {
+        case .fire: return "flame"
+        case .lightning: return "bolt"
+        case .weapon: return "hammer"
+        case .acid: return "drop"
+        case .psycho: return "brain.head.profile"
+        }
+    }
+}
+
+enum DefenseType: String, CaseIterable, Identifiable {
+    case fire = "Защита от огня"
+    case lightning = "Защита от молнии"
+    case weapon = "Защита от оружия"
+    case acid = "Защита от кислоты"
+    case psycho = "Психо-защита"
+    
+    var id: String { rawValue }
+    
+    var icon: String {
+        switch self {
+        case .fire: return "flame"
+        case .lightning: return "bolt"
+        case .weapon: return "shield"
+        case .acid: return "drop"
+        case .psycho: return "brain.head.profile"
+        }
+    }
+}
+
 enum CharacterPreset {
     case warrior, mage, rogue, balanced
 }
@@ -28,7 +68,7 @@ class Player: ObservableObject, Identifiable {
     @Published var damageTaken: Double = 0.0
     @Published var roundsWon: Int = 0
     
-    // Сделаем имя изменяемым
+    // Изменяемое имя
     @Published var name: String
     
     // Система уровней
@@ -36,7 +76,6 @@ class Player: ObservableObject, Identifiable {
     @Published var experience: Int = 0
     @Published var availableStatPoints: Int = 0
     
-    // Ссылка на сохраненного персонажа (только для игрока)
     var savedCharacter: PlayerCharacter?
     
     private var cancellables = Set<AnyCancellable>()
@@ -50,7 +89,6 @@ class Player: ObservableObject, Identifiable {
         self.intellect = intellect
         self.health = 80.0 + Double(endurance) * 2.0
         
-        // Наблюдаем за здоровьем
         $health
             .sink { [weak self] newHealth in
                 self?.isAlive = newHealth > 0
@@ -58,7 +96,6 @@ class Player: ObservableObject, Identifiable {
             .store(in: &cancellables)
     }
     
-    // Инициализатор из сохраненного персонажа
     convenience init(from character: PlayerCharacter) {
         self.init(
             name: character.name,
@@ -73,7 +110,6 @@ class Player: ObservableObject, Identifiable {
         self.experience = character.experience
     }
     
-    // Удобный инициализатор для предустановок (для компьютера)
     convenience init(name: String, characterPreset: CharacterPreset) {
         switch characterPreset {
         case .warrior:
@@ -157,9 +193,9 @@ class Player: ObservableObject, Identifiable {
         var character: PlayerCharacter
         if let existingCharacter = savedCharacter {
             character = existingCharacter
-            // Обновляем статистику
+            // Обновление статистики
             character.recordBattleResult(
-                won: false, // Это обновляется после битвы
+                won: false,
                 damageDealt: damageDealt,
                 damageTaken: damageTaken
             )
@@ -176,5 +212,87 @@ class Player: ObservableObject, Identifiable {
         
         DataManager.shared.saveCharacter(character)
         savedCharacter = character
+    }
+}
+
+struct PlayerCharacter: Codable {
+    let name: String
+    let strength: Int
+    let agility: Int
+    let endurance: Int
+    let wisdom: Int
+    let intellect: Int
+    var creationDate: Date
+    var battlesWon: Int
+    var battlesLost: Int
+    var totalDamageDealt: Double
+    var totalDamageTaken: Double
+    var level: Int
+    var experience: Int
+    var totalBonusPoints: Int
+    
+    var totalStats: Int {
+        strength + agility + endurance + wisdom + intellect
+    }
+    
+    var winRate: Double {
+        let totalBattles = battlesWon + battlesLost
+        return totalBattles > 0 ? Double(battlesWon) / Double(totalBattles) * 100 : 0
+    }
+    
+    var experienceToNextLevel: Int {
+        level * 100 + 50
+    }
+    
+    var maxLevel: Int {
+        50
+    }
+    
+    init(name: String, strength: Int, agility: Int, endurance: Int, wisdom: Int, intellect: Int) {
+        self.name = name
+        self.strength = strength
+        self.agility = agility
+        self.endurance = endurance
+        self.wisdom = wisdom
+        self.intellect = intellect
+        self.creationDate = Date()
+        self.battlesWon = 0
+        self.battlesLost = 0
+        self.totalDamageDealt = 0
+        self.totalDamageTaken = 0
+        self.level = 1
+        self.experience = 0
+        self.totalBonusPoints = 0
+    }
+    
+    mutating func recordBattleResult(won: Bool, damageDealt: Double, damageTaken: Double) {
+        if won {
+            battlesWon += 1
+            experience += 80 + Int(damageDealt / 10)
+        } else {
+            battlesLost += 1
+            experience += 20 + Int(damageDealt / 20)
+        }
+        totalDamageDealt += damageDealt
+        totalDamageTaken += damageTaken
+        
+        checkLevelUp()
+    }
+    
+    mutating func checkLevelUp() {
+        var levelsGained = 0
+        while experience >= experienceToNextLevel && level < maxLevel {
+            experience -= experienceToNextLevel
+            level += 1
+            levelsGained += 1
+        }
+        
+        if levelsGained > 0 {
+            totalBonusPoints += levelsGained * 2
+        }
+    }
+    
+    var totalAvailablePoints: Int {
+        return 25 + 25 + totalBonusPoints // 25 базовых + 25 стартовых + бонусные
     }
 }

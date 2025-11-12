@@ -8,7 +8,6 @@ struct MainMenuView: View {
     
     var body: some View {
         ZStack {
-            // Фон
             LinearGradient(
                 gradient: Gradient(colors: [.purple, .blue, .purple]),
                 startPoint: .topLeading,
@@ -17,7 +16,6 @@ struct MainMenuView: View {
             .ignoresSafeArea()
             
             VStack(spacing: 20) {
-                // Верхняя панель с названием и профилем
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Soul Battle")
@@ -25,7 +23,6 @@ struct MainMenuView: View {
                             .foregroundColor(.white)
                             .shadow(color: .purple, radius: 10)
                         
-                        // Приветствие с именем пользователя
                         if let currentUser = DataManager.shared.getCurrentUser() {
                             Text("Привет, \(currentUser)!")
                                 .font(.headline)
@@ -39,7 +36,6 @@ struct MainMenuView: View {
                     
                     Spacer()
                     
-                    // Кнопка профиля
                     Button(action: { showUserProfile.toggle() }) {
                         Image(systemName: "person.circle.fill")
                             .font(.title2)
@@ -49,9 +45,8 @@ struct MainMenuView: View {
                 .padding(.horizontal)
                 .padding(.top, 10)
                 
-                // Картинка битвы душ
                 VStack {
-                    Image("battle_mages") // Добавьте эту картинку в Assets
+                    Image("battle_mages")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(height: 200)
@@ -66,7 +61,6 @@ struct MainMenuView: View {
                 }
                 .padding(.horizontal)
                 
-                // Статистика персонажа
                 if let character = DataManager.shared.loadCharacter() {
                     VStack(spacing: 8) {
                         Text("Статистика персонажа")
@@ -111,7 +105,6 @@ struct MainMenuView: View {
                     .padding(.horizontal)
                 }
                 
-                // Кнопки режимов игры
                 VStack(spacing: 15) {
                     MenuButton(
                         title: "Игрок vs Игрок",
@@ -129,7 +122,6 @@ struct MainMenuView: View {
                         action: { viewModel.startPVEGame() }
                     )
                     
-                    // Кнопка редактирования персонажа
                     Button("Редактировать персонажа") {
                         showCharacterEditor = true
                     }

@@ -4,7 +4,6 @@ struct GameResultView: View {
     @EnvironmentObject var gameViewModel: GameViewModel
     @State private var opponentName: String = ""
     
-    // Вычисляемые свойства для статистики
     private var battleStatistics: BattleStatistics {
         return calculateBattleStatistics()
     }
@@ -12,7 +11,6 @@ struct GameResultView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 30) {
-                // Добавляем отступ сверху
                 Spacer().frame(height: 20)
                 
                 Text("Битва завершена!")
@@ -20,7 +18,6 @@ struct GameResultView: View {
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 
-                // Результат - используем информацию из истории битвы
                 if battleStatistics.isDraw {
                     Text("НИЧЬЯ!")
                         .font(.title)
@@ -43,7 +40,7 @@ struct GameResultView: View {
                     )
                 }
                 
-                // Статистика персонажа (если есть сохраненный персонаж)
+                // Статистика персонажа
                 if let character = DataManager.shared.loadCharacter() {
                     CharacterStatisticsView(character: character)
                 }
@@ -54,7 +51,6 @@ struct GameResultView: View {
                 // Кнопки действий
                 GameResultActionButtons()
                 
-                // Добавляем отступ снизу для скролла
                 Spacer().frame(height: 20)
             }
             .padding()
@@ -102,22 +98,18 @@ struct GameResultView: View {
         var player1FinalHealth: Double = gameViewModel.player1.maxHealth
         var player2FinalHealth: Double = gameViewModel.player2.maxHealth
         
-        // Анализируем каждый раунд из лога
         var currentRound = 0
         var roundDamagePlayer1: Double = 0
         var roundDamagePlayer2: Double = 0
         
         for logEntry in gameViewModel.gameLog {
-            // Определяем начало раунда
             if logEntry.contains("=== Раунд") {
                 if currentRound > 0 {
-                    // Определяем победителя предыдущего раунда
                     if roundDamagePlayer1 > roundDamagePlayer2 {
                         player1RoundsWon += 1
                     } else if roundDamagePlayer2 > roundDamagePlayer1 {
                         player2RoundsWon += 1
                     }
-                    // Если урон равен - никто не побеждает
                 }
                 currentRound += 1
                 roundDamagePlayer1 = 0
@@ -125,7 +117,6 @@ struct GameResultView: View {
                 continue
             }
             
-            // Анализируем урон игрока 1
             if logEntry.contains(gameViewModel.player1.name) && logEntry.contains("нанес") && logEntry.contains("урона") {
                 if let damage = extractDamageFromLog(logEntry) {
                     player1DamageDealt += damage
@@ -134,7 +125,6 @@ struct GameResultView: View {
                 }
             }
             
-            // Анализируем урон игрока 2
             if logEntry.contains(gameViewModel.player2.name) && logEntry.contains("нанес") && logEntry.contains("урона") {
                 if let damage = extractDamageFromLog(logEntry) {
                     player2DamageDealt += damage
@@ -143,7 +133,6 @@ struct GameResultView: View {
                 }
             }
             
-            // Анализируем HP игроков
             if logEntry.contains("HP") && logEntry.contains(":") {
                 if let (playerName, health) = extractHealthFromLog(logEntry) {
                     if playerName == gameViewModel.player1.name {
@@ -155,7 +144,6 @@ struct GameResultView: View {
             }
         }
         
-        // Обрабатываем последний раунд
         if currentRound > 0 {
             if roundDamagePlayer1 > roundDamagePlayer2 {
                 player1RoundsWon += 1
@@ -166,7 +154,6 @@ struct GameResultView: View {
         
         totalRounds = currentRound
         
-        // Определяем победителя битвы
         let (winner, isDraw) = determineWinner(
             player1Health: player1FinalHealth,
             player2Health: player2FinalHealth
@@ -187,7 +174,6 @@ struct GameResultView: View {
         )
     }
     
-    // Извлекаем урон из строки лога
     private func extractDamageFromLog(_ logEntry: String) -> Double? {
         let components = logEntry.components(separatedBy: " ")
         for component in components {
@@ -198,7 +184,6 @@ struct GameResultView: View {
         return nil
     }
     
-    // Извлекаем HP из строки лога
     private func extractHealthFromLog(_ logEntry: String) -> (playerName: String, health: Double)? {
         let components = logEntry.components(separatedBy: ":")
         guard components.count >= 2 else { return nil }
@@ -212,7 +197,6 @@ struct GameResultView: View {
         return nil
     }
     
-    // Определяем победителя битвы
     private func determineWinner(player1Health: Double, player2Health: Double) -> (winner: Player?, isDraw: Bool) {
         if player1Health <= 0 && player2Health <= 0 {
             return (nil, true) // Ничья - оба мертвы
@@ -229,9 +213,8 @@ struct GameResultView: View {
     }
     
     private func generateNewOpponentInfo() {
-        // Генерируем новое имя для следующей игры
-        let names = ["Морфей", "Зефир", "Игнис", "Астра", "Нексус", "Оракул", "Феникс", "Темпус", "Люмен", "Хронос", "Вортигон", "Арканум"]
-        opponentName = names.randomElement() ?? "Соперник"
+        // Имена для компьютера
+        let opponentName = GameConstants.getRandomAIName()
         
         // Генерируем новые характеристики для следующей игры
         if let playerCharacter = DataManager.shared.loadCharacter() {
@@ -417,7 +400,7 @@ struct CharacterStatisticsView: View {
                 }
             }
             
-            // Добавляем информацию об общем количестве битв
+            // Добавление информации об общем количестве битв
             VStack(spacing: 5) {
                 Text("Всего битв")
                     .font(.caption)
@@ -485,10 +468,10 @@ struct GameResultActionButtons: View {
     }
     
     private func startNewGame() {
-        // Сбрасываем игру и генерируем нового противника
+        // Сброс игры
         gameViewModel.resetGame()
         
-        // Генерируем нового противника с новыми характеристиками
+        // Генерация нового противника
         if let playerCharacter = DataManager.shared.loadCharacter() {
             let playerTotalStats = playerCharacter.strength + playerCharacter.agility +
                                   playerCharacter.endurance + playerCharacter.wisdom +
@@ -509,7 +492,6 @@ struct GameResultActionButtons: View {
             
             stats.shuffle()
             
-            // Обновляем противника
             gameViewModel.player2.strength = stats[0]
             gameViewModel.player2.agility = stats[1]
             gameViewModel.player2.endurance = stats[2]
@@ -517,8 +499,7 @@ struct GameResultActionButtons: View {
             gameViewModel.player2.intellect = stats[4]
             
             // Генерируем новое имя
-            let names = ["Морфей", "Зефир", "Игнис", "Астра", "Нексус", "Оракул", "Феникс", "Темпус", "Люмен", "Хронос", "Вортигон", "Арканум"]
-            gameViewModel.player2.name = names.randomElement() ?? "Соперник"
+            gameViewModel.player2.name = GameConstants.getRandomAIName()
             
             // Обновляем информацию о противнике
             let statsList = """
@@ -532,7 +513,6 @@ struct GameResultActionButtons: View {
             gameViewModel.opponentStatsInfo = statsList
         }
         
-        // Переходим к выбору атак
         gameViewModel.gameState = .selection
     }
 }
