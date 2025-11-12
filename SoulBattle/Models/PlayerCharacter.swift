@@ -14,7 +14,7 @@ struct PlayerCharacter: Codable {
     var totalDamageTaken: Double
     var level: Int
     var experience: Int
-    var availableStatPoints: Int // Только НОВЫЕ очки за уровни
+    var totalBonusPoints: Int // ВСЕГО полученных бонусных очков за уровни (а не остаток)
     
     var totalStats: Int {
         strength + agility + endurance + wisdom + intellect
@@ -47,17 +47,15 @@ struct PlayerCharacter: Codable {
         self.totalDamageTaken = 0
         self.level = 1
         self.experience = 0
-        self.availableStatPoints = 0
+        self.totalBonusPoints = 0 // Начинаем с 0 бонусных очков
     }
     
     mutating func recordBattleResult(won: Bool, damageDealt: Double, damageTaken: Double) {
         if won {
             battlesWon += 1
-            // Больше опыта за победу
             experience += 80 + Int(damageDealt / 10)
         } else {
             battlesLost += 1
-            // Меньше опыта за поражение
             experience += 20 + Int(damageDealt / 20)
         }
         totalDamageDealt += damageDealt
@@ -75,14 +73,14 @@ struct PlayerCharacter: Codable {
             levelsGained += 1
         }
         
-        // Добавляем очки за все полученные уровни
+        // Добавляем бонусные очки за все полученные уровни
         if levelsGained > 0 {
-            availableStatPoints += levelsGained * 2
+            totalBonusPoints += levelsGained * 2
         }
     }
     
     // Общая сумма доступных очков (для отображения)
     var totalAvailablePoints: Int {
-        return 25 + availableStatPoints
+        return 25 + 25 + totalBonusPoints // 25 базовых + 25 стартовых + бонусные
     }
 }

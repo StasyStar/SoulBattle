@@ -6,10 +6,7 @@ struct AttackButton: View {
     let action: () -> Void
     
     var body: some View {
-        Button(action: {
-            print("AttackButton нажата: \(attackType.rawValue)")
-            action()
-        }) {
+        Button(action: action) {
             HStack {
                 Image(systemName: attackType.icon)
                 Text(attackType.rawValue)

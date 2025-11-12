@@ -71,7 +71,6 @@ class Player: ObservableObject, Identifiable {
         self.savedCharacter = character
         self.level = character.level
         self.experience = character.experience
-        self.availableStatPoints = character.availableStatPoints
     }
     
     // Удобный инициализатор для предустановок (для компьютера)
@@ -109,13 +108,14 @@ class Player: ObservableObject, Identifiable {
     }
     
     func resetForNewGame() {
-        health = 80.0 + Double(endurance) * 2.0
+        health = maxHealth
         isAlive = true
         damageDealt = 0.0
         damageTaken = 0.0
         roundsWon = 0
         resetSelections()
     }
+        
     
     func winRound() {
         roundsWon += 1

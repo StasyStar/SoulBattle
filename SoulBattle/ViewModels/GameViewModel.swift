@@ -109,7 +109,6 @@ class GameViewModel: ObservableObject {
         addToLog("\(player1.name): \(player1Selections)")
         addToLog("\(player2.name): \(player2Selections)")
         
-        // Остальной код метода остается без изменений...
         // Сохраняем выборы для отображения в результатах
         let player1Attacks = player1.selectedAttacks
         let player1Defenses = player1.selectedDefenses
@@ -120,12 +119,13 @@ class GameViewModel: ObservableObject {
         let damageToPlayer2 = battleSystem.calculateDamage(attacker: player1, defender: player2)
         let damageToPlayer1 = battleSystem.calculateDamage(attacker: player2, defender: player1)
         
-        // Применение урона
-        player2.takeDamage(damageToPlayer2)
-        player1.takeDamage(damageToPlayer1)
+        // Применение урона - ВАЖНО: правильный порядок!
+        player2.takeDamage(damageToPlayer2)  // Игрок 1 наносит урон игроку 2
+        player1.takeDamage(damageToPlayer1)  // Игрок 2 наносит урон игроку 1
         
-        player1.dealDamage(damageToPlayer1)
-        player2.dealDamage(damageToPlayer2)
+        // Учет нанесенного урона - ВАЖНО: правильный порядок!
+        player1.dealDamage(damageToPlayer2)  // Игрок 1 нанес этот урон
+        player2.dealDamage(damageToPlayer1)  // Игрок 2 нанес этот урон
         
         // Создаем детали раунда для отображения
         roundDetails = RoundDetails(
@@ -134,15 +134,20 @@ class GameViewModel: ObservableObject {
             player1Defenses: player1Defenses,
             player2Attacks: player2Attacks,
             player2Defenses: player2Defenses,
-            player1DamageDealt: damageToPlayer2,
-            player2DamageDealt: damageToPlayer1,
+            player1DamageDealt: damageToPlayer2,  // Игрок 1 нанес игроку 2
+            player2DamageDealt: damageToPlayer1,  // Игрок 2 нанес игроку 1
             player1HealthAfter: player1.health,
             player2HealthAfter: player2.health
         )
         
-        // Добавляем информацию об остатке HP
+        // Добавляем информацию об уроне в лог
+        addToLog("\(player1.name) нанес \(String(format: "%.1f", damageToPlayer2)) урона")
+        addToLog("\(player2.name) нанес \(String(format: "%.1f", damageToPlayer1)) урона")
         addToLog("\(player1.name): \(String(format: "%.0f", player1.health)) HP")
         addToLog("\(player2.name): \(String(format: "%.0f", player2.health)) HP")
+        
+        // Определяем победителя раунда и начисляем победы
+        determineRoundWinner()
         
         // Проверка окончания игры
         if player1.health <= 0 || player2.health <= 0 {
@@ -161,7 +166,21 @@ class GameViewModel: ObservableObject {
         }
     }
     
-    // Простые случайные выборы для компьютера
+    private func determineRoundWinner() {
+        // Победитель раунда - тот, кто нанес больше урона в этом раунде
+        if let details = roundDetails {
+            if details.player1DamageDealt > details.player2DamageDealt {
+                player1.roundsWon += 1
+                addToLog("🎯 \(player1.name) выиграл раунд!")
+            } else if details.player2DamageDealt > details.player1DamageDealt {
+                player2.roundsWon += 1
+                addToLog("🎯 \(player2.name) выиграл раунд!")
+            } else {
+                addToLog("⚖️ Раунд окончился вничью!")
+            }
+        }
+    }
+    
     private func makeRandomAISelections() {
         // Случайные атаки
         let randomAttacks = AttackType.allCases.shuffled().prefix(2)

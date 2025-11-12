@@ -5,8 +5,8 @@ struct BattleSelectionView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                // Заголовок с информацией о режиме
+            VStack(spacing: 15) {
+                // Заголовок
                 VStack {
                     Text("Подготовка к раунду \(gameViewModel.currentRound)")
                         .font(.title2)
@@ -17,11 +17,11 @@ struct BattleSelectionView: View {
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.8))
                 }
-                .padding(.top, 10) // Уменьшили отступ сверху
+                .padding(.top, 5)
                 
                 // Основной контент
-                VStack(spacing: 15) {
-                    HStack(alignment: .top, spacing: 12) {
+                VStack(spacing: 12) {
+                    HStack(alignment: .top, spacing: 10) {
                         // Игрок 1
                         PlayerSelectionView(
                             player: gameViewModel.player1,
@@ -39,111 +39,20 @@ struct BattleSelectionView: View {
                                 gameViewModel: gameViewModel
                             )
                         } else {
-                            VStack(spacing: 8) {
-                                Text(gameViewModel.player2.name)
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                
-                                VStack(spacing: 6) {
-                                    Image(systemName: "desktopcomputer")
-                                        .font(.title2)
-                                        .foregroundColor(.green)
-                                    
-                                    Text("Готов к бою!")
-                                        .font(.headline)
-                                        .foregroundColor(.green)
-                                    
-                                    Text("Выборы сделаны автоматически")
-                                        .font(.caption)
-                                        .foregroundColor(.white.opacity(0.7))
-                                }
-                                .padding()
-                                .background(Color.white.opacity(0.1))
-                                .cornerRadius(10)
-                                
-                                // Информация о характеристиках противника справа под блоком
-                                if !gameViewModel.opponentStatsInfo.isEmpty {
-                                    VStack(spacing: 6) { // Уменьшили spacing
-                                        Text("Характеристики")
-                                            .font(.subheadline)
-                                            .fontWeight(.semibold)
-                                            .foregroundColor(.white)
-                                        
-                                        // Красивый список характеристик
-                                        VStack(alignment: .leading, spacing: 2) { // Уменьшили spacing
-                                            ForEach(gameViewModel.opponentStatsInfo.components(separatedBy: "\n"), id: \.self) { line in
-                                                if !line.isEmpty {
-                                                    Text(line)
-                                                        .font(.system(size: 11, design: .monospaced)) // Уменьшили шрифт
-                                                        .foregroundColor(.white.opacity(0.9))
-                                                        .padding(.vertical, 1) // Уменьшили отступы
-                                                }
-                                            }
-                                        }
-                                        .padding(6) // Уменьшили padding
-                                        .background(Color.orange.opacity(0.2))
-                                        .cornerRadius(8)
-                                    }
-                                    .padding(.top, 5)
-                                }
-                            }
-                            .padding()
-                            .background(Color.white.opacity(0.1))
-                            .cornerRadius(10)
+                            AIPlayerView()
                         }
                     }
                     
-                    // Для PVP режима показываем информацию о противнике отдельно
+                    // Информация о противнике для PVP
                     if gameViewModel.gameMode == .pvp && !gameViewModel.opponentStatsInfo.isEmpty {
-                        VStack(spacing: 6) { // Уменьшили spacing
-                            Text("Характеристики противника")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            
-                            // Красивый список характеристик
-                            VStack(alignment: .leading, spacing: 2) { // Уменьшили spacing
-                                ForEach(gameViewModel.opponentStatsInfo.components(separatedBy: "\n"), id: \.self) { line in
-                                    if !line.isEmpty {
-                                        Text(line)
-                                            .font(.system(size: 11, design: .monospaced)) // Уменьшили шрифт
-                                            .foregroundColor(.white.opacity(0.9))
-                                            .padding(.vertical, 1) // Уменьшили отступы
-                                    }
-                                }
-                            }
-                            .padding(8)
-                            .background(Color.orange.opacity(0.2))
-                            .cornerRadius(10)
-                        }
-                        .padding(.horizontal)
+                        OpponentStatsView()
                     }
                     
-                    // Улучшенный блок хода битвы
+                    // Лог битвы с HP
                     ImprovedBattleLogView()
                     
-                    // Основные кнопки
-                    VStack(spacing: 12) {
-                        ActionButton(
-                            title: "Начать раунд",
-                            action: {
-                                gameViewModel.executeRound()
-                            },
-                            isEnabled: gameViewModel.areSelectionsValid()
-                        )
-                        
-                        // Кнопка "В меню"
-                        Button("В меню") {
-                            gameViewModel.backToMainMenu()
-                        }
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.orange.opacity(0.9))
-                        .cornerRadius(15)
-                        .shadow(radius: 5)
-                        .padding(.horizontal)
-                    }
+                    // Кнопки действий
+                    ActionButtonsView()
                 }
             }
             .padding()
@@ -166,5 +75,120 @@ struct BattleSelectionView: View {
         case .pvp: return "Игрок vs Игрок"
         case .pve: return "Игрок vs Компьютер"
         }
+    }
+}
+
+// Вспомогательные View для лучшей организации кода
+struct AIPlayerView: View {
+    @EnvironmentObject var gameViewModel: GameViewModel
+    
+    var body: some View {
+        VStack(spacing: 6) {
+            Text(gameViewModel.player2.name)
+                .font(.headline)
+                .foregroundColor(.white)
+            
+            VStack(spacing: 4) {
+                Image(systemName: "desktopcomputer")
+                    .font(.title2)
+                    .foregroundColor(.green)
+                
+                Text("Готов к бою!")
+                    .font(.headline)
+                    .foregroundColor(.green)
+                
+                Text("Выборы сделаны автоматически")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.7))
+            }
+            .padding()
+            .background(Color.white.opacity(0.1))
+            .cornerRadius(10)
+            
+            if !gameViewModel.opponentStatsInfo.isEmpty {
+                VStack(spacing: 4) {
+                    Text("Характеристики")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                    
+                    VStack(alignment: .leading, spacing: 1) {
+                        ForEach(gameViewModel.opponentStatsInfo.components(separatedBy: "\n"), id: \.self) { line in
+                            if !line.isEmpty {
+                                Text(line)
+                                    .font(.system(size: 10, design: .monospaced))
+                                    .foregroundColor(.white.opacity(0.9))
+                                    .padding(.vertical, 0.5)
+                            }
+                        }
+                    }
+                    .padding(4)
+                    .background(Color.orange.opacity(0.2))
+                    .cornerRadius(6)
+                }
+                .padding(.top, 4)
+            }
+        }
+        .padding()
+        .background(Color.white.opacity(0.1))
+        .cornerRadius(10)
+    }
+}
+
+struct OpponentStatsView: View {
+    @EnvironmentObject var gameViewModel: GameViewModel
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Text("Характеристики противника")
+                .font(.headline)
+                .foregroundColor(.white)
+            
+            VStack(alignment: .leading, spacing: 1) {
+                ForEach(gameViewModel.opponentStatsInfo.components(separatedBy: "\n"), id: \.self) { line in
+                    if !line.isEmpty {
+                        Text(line)
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.9))
+                            .padding(.vertical, 0.5)
+                    }
+                }
+            }
+            .padding(6)
+            .background(Color.orange.opacity(0.2))
+            .cornerRadius(8)
+        }
+        .padding(.horizontal)
+    }
+}
+
+struct ActionButtonsView: View {
+    @EnvironmentObject var gameViewModel: GameViewModel
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            ActionButton(
+                title: "Начать раунд",
+                action: {
+                    gameViewModel.executeRound()
+                },
+                isEnabled: gameViewModel.areSelectionsValid(),
+                backgroundColor: .blue,
+                size: .small
+            )
+            
+            Button("В меню") {
+                gameViewModel.backToMainMenu()
+            }
+            .font(.subheadline)
+            .foregroundColor(.white)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .background(Color.orange.opacity(0.9))
+            .cornerRadius(12)
+            .shadow(radius: 3)
+            .padding(.horizontal)
+        }
+        .padding(.top, 5)
     }
 }

@@ -21,7 +21,7 @@ struct CompactAttackButton: View {
                 }
             }
             .padding(6)
-            .background(isSelected ? Color.red.opacity(0.4) : Color.gray.opacity(0.2)) // Более насыщенный красный
+            .background(isSelected ? Color.red.opacity(0.4) : Color.gray.opacity(0.2))
             .foregroundColor(isSelected ? .red : .primary)
             .cornerRadius(6)
             .overlay(
@@ -53,7 +53,7 @@ struct CompactDefenseButton: View {
                 }
             }
             .padding(6)
-            .background(isSelected ? Color.blue.opacity(0.4) : Color.gray.opacity(0.2)) // Более насыщенный синий
+            .background(isSelected ? Color.blue.opacity(0.4) : Color.gray.opacity(0.2))
             .foregroundColor(isSelected ? .blue : .primary)
             .cornerRadius(6)
             .overlay(

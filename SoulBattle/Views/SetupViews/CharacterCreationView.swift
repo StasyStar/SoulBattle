@@ -17,6 +17,10 @@ struct CharacterCreationView: View {
     var username: String = ""
     var password: String = ""
     
+    // Константы
+    private let BASE_STATS_POINTS = 25 // 5 * 5 = 25 базовых очков
+    private let STARTING_EXTRA_POINTS = 25 // 25 дополнительных очков при создании
+    
     var body: some View {
         ZStack {
             // Фон
@@ -45,8 +49,8 @@ struct CharacterCreationView: View {
                                 
                                 Spacer()
                                 
-                                if currentCharacter.availableStatPoints > 0 {
-                                    Text("+\(currentCharacter.availableStatPoints) очков")
+                                if currentCharacter.totalBonusPoints > 0 {
+                                    Text("+\(currentCharacter.totalBonusPoints) бонусных очков")
                                         .font(.headline)
                                         .foregroundColor(.green)
                                         .padding(.horizontal, 8)
@@ -108,28 +112,28 @@ struct CharacterCreationView: View {
                             availablePoints: $availablePoints,
                             color: .red
                         )
-
+                        
                         CharacteristicRow(
                             name: "🏃 Ловкость",
                             value: $agility,
                             availablePoints: $availablePoints,
                             color: .green
                         )
-
+                        
                         CharacteristicRow(
                             name: "❤️ Выносливость",
                             value: $endurance,
                             availablePoints: $availablePoints,
                             color: .orange
                         )
-
+                        
                         CharacteristicRow(
                             name: "📚 Мудрость",
                             value: $wisdom,
                             availablePoints: $availablePoints,
                             color: .blue
                         )
-
+                        
                         CharacteristicRow(
                             name: "🧠 Интеллект",
                             value: $intellect,
@@ -210,12 +214,6 @@ struct CharacterCreationView: View {
     }
     
     private func createCharacterForRegistration() {
-        print("=== ПОПЫТКА СОЗДАНИЯ ПЕРСОНАЖА ===")
-        print("Имя: \(characterName)")
-        print("Характеристики: С\(strength) Л\(agility) В\(endurance) М\(wisdom) И\(intellect)")
-        print("Базовые очки: 25 (5 в каждой)")
-        print("Дополнительно распределено: \(25 - availablePoints) очков")
-        
         let character = PlayerCharacter(
             name: characterName.isEmpty ? username : characterName,
             strength: strength,
@@ -225,27 +223,13 @@ struct CharacterCreationView: View {
             intellect: intellect
         )
         
-        // Устанавливаем начальные доступные очки (0, так как все распределены)
-        var characterWithPoints = character
-        characterWithPoints.availableStatPoints = 0
-        
-        // Регистрируем пользователя с персонажем
-        let success = DataManager.shared.registerUser(username: username, password: password, character: characterWithPoints)
-        print("Регистрация успешна: \(success)")
+        let success = DataManager.shared.registerUser(username: username, password: password, character: character)
         
         if success {
-            // Сохраняем персонажа отдельно
-            DataManager.shared.saveCharacter(characterWithPoints)
-            print("Персонаж сохранен")
-            
-            // Создаем игрока из персонажа
-            viewModel.player1 = Player(from: characterWithPoints)
-            print("Игрок создан: \(viewModel.player1.name)")
-            
-            // Переходим к главному меню
+            DataManager.shared.saveCharacter(character)
+            viewModel.player1 = Player(from: character)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 viewModel.gameState = .mainMenu
-                print("Переход в главное меню")
                 dismiss()
             }
         } else {
@@ -255,53 +239,53 @@ struct CharacterCreationView: View {
     }
     
     private func updateCharacter() {
-        if let currentCharacter = DataManager.shared.loadCharacter() {
-            // Создаем нового персонажа с обновленными характеристиками
-            var updatedCharacter = PlayerCharacter(
-                name: characterName,
-                strength: strength,
-                agility: agility,
-                endurance: endurance,
-                wisdom: wisdom,
-                intellect: intellect
-            )
-            
-            // Сохраняем прогресс уровней и статистику из текущего персонажа
-            updatedCharacter.level = currentCharacter.level
-            updatedCharacter.experience = currentCharacter.experience
-            
-            // ПРАВИЛЬНО рассчитываем оставшиеся доступные очки
-            let totalSpentPoints = strength + agility + endurance + wisdom + intellect
-            let basePoints = 25 // Базовые очки (5 в каждой характеристике)
-            let totalAvailablePoints = basePoints + 25 + currentCharacter.availableStatPoints
-            let remainingPoints = totalAvailablePoints - totalSpentPoints
-            
-            // Сохраняем только бонусные очки за уровни (исключая базовые 25 + 25)
-            updatedCharacter.availableStatPoints = max(0, remainingPoints)
-            
-            updatedCharacter.battlesWon = currentCharacter.battlesWon
-            updatedCharacter.battlesLost = currentCharacter.battlesLost
-            updatedCharacter.totalDamageDealt = currentCharacter.totalDamageDealt
-            updatedCharacter.totalDamageTaken = currentCharacter.totalDamageTaken
-            updatedCharacter.creationDate = currentCharacter.creationDate
-            
-            // Сохраняем персонажа
-            DataManager.shared.saveCharacter(updatedCharacter)
-            
-            // Обновляем данные в аккаунте, если пользователь зарегистрирован
-            if DataManager.shared.getCurrentUser() != nil {
-                _ = DataManager.shared.updateCurrentUserCharacter(updatedCharacter)
-            }
-            
-            // Обновляем игрока
-            viewModel.player1 = Player(from: updatedCharacter)
-            dismiss()
+        guard let currentCharacter = DataManager.shared.loadCharacter() else { return }
+        
+        // Создаем обновленного персонажа
+        var updatedCharacter = PlayerCharacter(
+            name: characterName,
+            strength: strength,
+            agility: agility,
+            endurance: endurance,
+            wisdom: wisdom,
+            intellect: intellect
+        )
+        
+        // Сохраняем весь прогресс
+        updatedCharacter.level = currentCharacter.level
+        updatedCharacter.experience = currentCharacter.experience
+        updatedCharacter.battlesWon = currentCharacter.battlesWon
+        updatedCharacter.battlesLost = currentCharacter.battlesLost
+        updatedCharacter.totalDamageDealt = currentCharacter.totalDamageDealt
+        updatedCharacter.totalDamageTaken = currentCharacter.totalDamageTaken
+        updatedCharacter.creationDate = currentCharacter.creationDate
+        
+        // ВАЖНО: totalBonusPoints НЕ ИЗМЕНЯЕМ при сохранении!
+        // Это общее количество полученных бонусных очков, оно должно сохраняться
+        updatedCharacter.totalBonusPoints = currentCharacter.totalBonusPoints
+        
+        // Сохраняем персонажа
+        DataManager.shared.saveCharacter(updatedCharacter)
+        
+        // Обновляем данные в аккаунте
+        if DataManager.shared.getCurrentUser() != nil {
+            _ = DataManager.shared.updateCurrentUserCharacter(updatedCharacter)
         }
+        
+        // Обновляем игрока
+        viewModel.player1 = Player(from: updatedCharacter)
+        
+        print("=== СОХРАНЕНИЕ ===")
+        print("Всего характеристик: \(strength + agility + endurance + wisdom + intellect)")
+        print("Бонусных очков получено: \(currentCharacter.totalBonusPoints)")
+        print("Сохранено бонусных очков: \(updatedCharacter.totalBonusPoints)")
+        
+        dismiss()
     }
     
     private func loadCurrentCharacter() {
         if let currentCharacter = DataManager.shared.loadCharacter() {
-            // Режим редактирования существующего персонажа
+            // Загружаем текущие значения
             characterName = currentCharacter.name
             strength = currentCharacter.strength
             agility = currentCharacter.agility
@@ -309,42 +293,29 @@ struct CharacterCreationView: View {
             wisdom = currentCharacter.wisdom
             intellect = currentCharacter.intellect
             
-            // ПРАВИЛЬНЫЙ расчет доступных очков для существующего персонажа
-            let totalSpentPoints = strength + agility + endurance + wisdom + intellect
-            let basePoints = 25 // Базовые очки (5 в каждой характеристике)
-            let bonusPoints = currentCharacter.availableStatPoints // Очки за уровни
-            let totalAvailablePoints = basePoints + 25 + bonusPoints // 25 базовых + 25 дополнительных + бонусные за уровни
+            // ВАЖНО: Правильный расчет доступных очков
+            let totalCurrentStats = strength + agility + endurance + wisdom + intellect
+            let totalAvailablePoints = BASE_STATS_POINTS + STARTING_EXTRA_POINTS + currentCharacter.totalBonusPoints
             
-            // Доступные очки = Всего доступно - уже потрачено
-            availablePoints = totalAvailablePoints - totalSpentPoints
+            // Доступные очки = Всего доступно - Уже потрачено
+            availablePoints = totalAvailablePoints - totalCurrentStats
             
-            print("=== РЕДАКТИРОВАНИЕ СУЩЕСТВУЮЩЕГО ПЕРСОНАЖА ===")
-            print("Имя: \(characterName)")
+            print("=== ЗАГРУЗКА ===")
             print("Уровень: \(currentCharacter.level)")
-            print("Базовые очки: \(basePoints)")
-            print("Дополнительные очки: 25")
-            print("Бонусные очки за уровни: \(bonusPoints)")
+            print("Всего бонусных очков получено: \(currentCharacter.totalBonusPoints)")
             print("Всего доступно очков: \(totalAvailablePoints)")
-            print("Потрачено очков: \(totalSpentPoints)")
-            print("Осталось очков: \(availablePoints)")
-            print("Характеристики: С\(strength) Л\(agility) В\(endurance) М\(wisdom) И\(intellect)")
+            print("Уже потрачено очков: \(totalCurrentStats)")
+            print("Осталось доступных очков: \(availablePoints)")
             
         } else if isRegistration {
-            // Режим создания нового персонажа
+            // Создание нового персонажа
             characterName = username.isEmpty ? "Новый герой" : username
-            // Начинаем с 5 очков в каждой характеристике
             strength = 5
             agility = 5
             endurance = 5
             wisdom = 5
             intellect = 5
-            // Доступно 25 очков для распределения
             availablePoints = 25
-            
-            print("=== СОЗДАНИЕ НОВОГО ПЕРСОНАЖА ===")
-            print("Всего очков: 50 (25 базовых + 25 дополнительных)")
-            print("Минимум на характеристики: 25 (5 на каждую)")
-            print("Доступно для распределения: \(availablePoints)")
         }
     }
 }
@@ -354,7 +325,7 @@ struct CharacteristicRow: View {
     @Binding var value: Int
     @Binding var availablePoints: Int
     let color: Color
-    let minValue: Int = 5 // Минимум 5 очков в каждой характеристике
+    let minValue: Int = 5
     
     var body: some View {
         HStack {
@@ -373,13 +344,13 @@ struct CharacteristicRow: View {
             
             HStack(spacing: 8) {
                 Button("-") {
-                    if value > minValue { // Не позволяем опускаться ниже 5
+                    if value > minValue {
                         value -= 1
                         availablePoints += 1
                     }
                 }
                 .buttonStyle(CharacteristicButtonStyle(color: color))
-                .disabled(value <= minValue) // Отключаем если достигли минимума
+                .disabled(value <= minValue)
                 
                 Button("+") {
                     if availablePoints > 0 {

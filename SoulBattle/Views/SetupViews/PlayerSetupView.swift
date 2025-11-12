@@ -39,8 +39,8 @@ struct PlayerSetupView: View {
                                         .font(.headline)
                                         .foregroundColor(.yellow)
                                     
-                                    if character.availableStatPoints > 0 {
-                                        Text("+\(character.availableStatPoints)")
+                                    if character.totalBonusPoints > 0 {
+                                        Text("+\(character.totalBonusPoints)")
                                             .font(.headline)
                                             .foregroundColor(.green)
                                             .padding(4)
@@ -118,7 +118,7 @@ struct PlayerSetupView: View {
         
         // Случайное отклонение: от -2 до +2 от статов игрока
         let deviation = Int.random(in: -2...2)
-        let opponentTotalStats = max(25, playerTotalStats + deviation) // Минимум 25 очков
+        let opponentTotalStats = max(25, playerTotalStats + deviation)
         
         // Начинаем с 5 очков в каждой характеристике (как у игрока)
         var stats = [5, 5, 5, 5, 5] // Сила, Ловкость, Выносливость, Мудрость, Интеллект
