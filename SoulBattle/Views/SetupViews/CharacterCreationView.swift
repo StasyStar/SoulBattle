@@ -106,40 +106,35 @@ struct CharacterCreationView: View {
                             name: "💪 Сила",
                             value: $strength,
                             availablePoints: $availablePoints,
-                            color: .red,
-                            minValue: 5
+                            color: .red
                         )
-                        
+
                         CharacteristicRow(
                             name: "🏃 Ловкость",
                             value: $agility,
                             availablePoints: $availablePoints,
-                            color: .green,
-                            minValue: 5
+                            color: .green
                         )
-                        
+
                         CharacteristicRow(
                             name: "❤️ Выносливость",
                             value: $endurance,
                             availablePoints: $availablePoints,
-                            color: .orange,
-                            minValue: 5
+                            color: .orange
                         )
-                        
+
                         CharacteristicRow(
                             name: "📚 Мудрость",
                             value: $wisdom,
                             availablePoints: $availablePoints,
-                            color: .blue,
-                            minValue: 5
+                            color: .blue
                         )
-                        
+
                         CharacteristicRow(
                             name: "🧠 Интеллект",
                             value: $intellect,
                             availablePoints: $availablePoints,
-                            color: .purple,
-                            minValue: 5
+                            color: .purple
                         )
                     }
                     .padding(.horizontal)
@@ -201,7 +196,7 @@ struct CharacterCreationView: View {
     }
     
     private var isReadyToCreate: Bool {
-        return !characterName.isEmpty && availablePoints == 0
+        return !characterName.isEmpty && availablePoints >= 0
     }
     
     private func calculateAttackPower() -> String {
@@ -218,7 +213,8 @@ struct CharacterCreationView: View {
         print("=== ПОПЫТКА СОЗДАНИЯ ПЕРСОНАЖА ===")
         print("Имя: \(characterName)")
         print("Характеристики: С\(strength) Л\(agility) В\(endurance) М\(wisdom) И\(intellect)")
-        print("Всего очков: \(strength + agility + endurance + wisdom + intellect)")
+        print("Базовые очки: 25 (5 в каждой)")
+        print("Дополнительно распределено: \(25 - availablePoints) очков")
         
         let character = PlayerCharacter(
             name: characterName.isEmpty ? username : characterName,
@@ -229,17 +225,21 @@ struct CharacterCreationView: View {
             intellect: intellect
         )
         
+        // Устанавливаем начальные доступные очки (0, так как все распределены)
+        var characterWithPoints = character
+        characterWithPoints.availableStatPoints = 0
+        
         // Регистрируем пользователя с персонажем
-        let success = DataManager.shared.registerUser(username: username, password: password, character: character)
+        let success = DataManager.shared.registerUser(username: username, password: password, character: characterWithPoints)
         print("Регистрация успешна: \(success)")
         
         if success {
             // Сохраняем персонажа отдельно
-            DataManager.shared.saveCharacter(character)
+            DataManager.shared.saveCharacter(characterWithPoints)
             print("Персонаж сохранен")
             
             // Создаем игрока из персонажа
-            viewModel.player1 = Player(from: character)
+            viewModel.player1 = Player(from: characterWithPoints)
             print("Игрок создан: \(viewModel.player1.name)")
             
             // Переходим к главному меню
@@ -269,7 +269,16 @@ struct CharacterCreationView: View {
             // Сохраняем прогресс уровней и статистику из текущего персонажа
             updatedCharacter.level = currentCharacter.level
             updatedCharacter.experience = currentCharacter.experience
-            updatedCharacter.availableStatPoints = currentCharacter.availableStatPoints
+            
+            // ПРАВИЛЬНО рассчитываем оставшиеся доступные очки
+            let totalSpentPoints = strength + agility + endurance + wisdom + intellect
+            let basePoints = 25 // Базовые очки (5 в каждой характеристике)
+            let totalAvailablePoints = basePoints + 25 + currentCharacter.availableStatPoints
+            let remainingPoints = totalAvailablePoints - totalSpentPoints
+            
+            // Сохраняем только бонусные очки за уровни (исключая базовые 25 + 25)
+            updatedCharacter.availableStatPoints = max(0, remainingPoints)
+            
             updatedCharacter.battlesWon = currentCharacter.battlesWon
             updatedCharacter.battlesLost = currentCharacter.battlesLost
             updatedCharacter.totalDamageDealt = currentCharacter.totalDamageDealt
@@ -302,13 +311,19 @@ struct CharacterCreationView: View {
             
             // ПРАВИЛЬНЫЙ расчет доступных очков для существующего персонажа
             let totalSpentPoints = strength + agility + endurance + wisdom + intellect
-            let totalAvailablePoints = 50 // 25 базовых + 25 дополнительных
+            let basePoints = 25 // Базовые очки (5 в каждой характеристике)
+            let bonusPoints = currentCharacter.availableStatPoints // Очки за уровни
+            let totalAvailablePoints = basePoints + 25 + bonusPoints // 25 базовых + 25 дополнительных + бонусные за уровни
             
             // Доступные очки = Всего доступно - уже потрачено
             availablePoints = totalAvailablePoints - totalSpentPoints
             
             print("=== РЕДАКТИРОВАНИЕ СУЩЕСТВУЮЩЕГО ПЕРСОНАЖА ===")
             print("Имя: \(characterName)")
+            print("Уровень: \(currentCharacter.level)")
+            print("Базовые очки: \(basePoints)")
+            print("Дополнительные очки: 25")
+            print("Бонусные очки за уровни: \(bonusPoints)")
             print("Всего доступно очков: \(totalAvailablePoints)")
             print("Потрачено очков: \(totalSpentPoints)")
             print("Осталось очков: \(availablePoints)")
@@ -339,7 +354,7 @@ struct CharacteristicRow: View {
     @Binding var value: Int
     @Binding var availablePoints: Int
     let color: Color
-    let minValue: Int
+    let minValue: Int = 5 // Минимум 5 очков в каждой характеристике
     
     var body: some View {
         HStack {
@@ -358,13 +373,13 @@ struct CharacteristicRow: View {
             
             HStack(spacing: 8) {
                 Button("-") {
-                    if value > minValue {
+                    if value > minValue { // Не позволяем опускаться ниже 5
                         value -= 1
                         availablePoints += 1
                     }
                 }
                 .buttonStyle(CharacteristicButtonStyle(color: color))
-                .disabled(value <= minValue)
+                .disabled(value <= minValue) // Отключаем если достигли минимума
                 
                 Button("+") {
                     if availablePoints > 0 {

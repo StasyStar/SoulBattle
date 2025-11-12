@@ -217,16 +217,45 @@ class GameViewModel: ObservableObject {
     
     private func endGame() {
         gameState = .result
+        
+        // Определяем победителя и обновляем статистику
         if player1.health <= 0 && player2.health <= 0 {
             addToLog("НИЧЬЯ! Оба игрока пали в бою!")
+            // За ничью тоже даем немного опыта
+            updateCharacterAfterBattle(won: false, isDraw: true)
         } else if player1.health <= 0 {
             addToLog("\(player2.name) ПОБЕДИЛ!")
             player2.winRound()
-            updateCharacterStatistics(won: false)
+            updateCharacterAfterBattle(won: false, isDraw: false)
         } else {
             addToLog("\(player1.name) ПОБЕДИЛ!")
             player1.winRound()
-            updateCharacterStatistics(won: true)
+            updateCharacterAfterBattle(won: true, isDraw: false)
+        }
+    }
+
+    private func updateCharacterAfterBattle(won: Bool, isDraw: Bool) {
+        if var character = DataManager.shared.loadCharacter() {
+            let oldLevel = character.level
+            
+            // Записываем результат битвы
+            character.recordBattleResult(
+                won: won,
+                damageDealt: player1.damageDealt,
+                damageTaken: player1.damageTaken
+            )
+            
+            // Сохраняем персонажа
+            DataManager.shared.saveCharacter(character)
+            
+            // Проверяем, был ли получен новый уровень
+            if character.level > oldLevel {
+                let levelsGained = character.level - oldLevel
+                addToLog("🎉 Получен \(character.level) уровень! +\(levelsGained * 2) очков характеристик")
+            }
+            
+            // Обновляем игрока
+            player1 = Player(from: character)
         }
     }
     

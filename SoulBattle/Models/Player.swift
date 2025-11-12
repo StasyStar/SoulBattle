@@ -134,15 +134,22 @@ class Player: ObservableObject, Identifiable {
     }
     
     func isValidStats() -> Bool {
+        let totalSpentPoints = strength + agility + endurance + wisdom + intellect
+        let maxAllowedPoints = 25 + (level - 1) * 2 // Базовые 25 + по 2 за каждый уровень после 1-го
+        
         return strength >= 1 && agility >= 1 && endurance >= 1 &&
                wisdom >= 1 && intellect >= 1 &&
                strength <= 10 && agility <= 10 && endurance <= 10 &&
                wisdom <= 10 && intellect <= 10 &&
-               totalStats <= 25 + (level - 1) * 2 // Учитываем дополнительные очки за уровни
+               totalSpentPoints <= maxAllowedPoints
     }
     
     var experienceToNextLevel: Int {
         level * 100 + 50
+    }
+    
+    var maxAllowedStatPoints: Int {
+        return 25 + (level - 1) * 2
     }
     
     // Сохранение персонажа

@@ -7,14 +7,14 @@ struct PlayerCharacter: Codable {
     let endurance: Int
     let wisdom: Int
     let intellect: Int
-    var creationDate: Date // Изменяем на var
+    var creationDate: Date
     var battlesWon: Int
     var battlesLost: Int
     var totalDamageDealt: Double
     var totalDamageTaken: Double
     var level: Int
     var experience: Int
-    var availableStatPoints: Int
+    var availableStatPoints: Int // Только НОВЫЕ очки за уровни
     
     var totalStats: Int {
         strength + agility + endurance + wisdom + intellect
@@ -68,17 +68,21 @@ struct PlayerCharacter: Codable {
     }
     
     mutating func checkLevelUp() {
+        var levelsGained = 0
         while experience >= experienceToNextLevel && level < maxLevel {
             experience -= experienceToNextLevel
             level += 1
-            availableStatPoints += 2 // 2 очка характеристик за уровень
+            levelsGained += 1
+        }
+        
+        // Добавляем очки за все полученные уровни
+        if levelsGained > 0 {
+            availableStatPoints += levelsGained * 2
         }
     }
     
-    mutating func addStatPoint(to stat: inout Int) {
-        if availableStatPoints > 0 && stat < 10 {
-            stat += 1
-            availableStatPoints -= 1
-        }
+    // Общая сумма доступных очков (для отображения)
+    var totalAvailablePoints: Int {
+        return 25 + availableStatPoints
     }
 }
