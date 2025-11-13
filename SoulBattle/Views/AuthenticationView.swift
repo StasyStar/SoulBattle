@@ -8,11 +8,11 @@ struct AuthenticationView: View {
     @State private var confirmPassword = ""
     @State private var showAlert = false
     @State private var alertMessage = ""
-    @State private var showCharacterCreation = false
     
     var body: some View {
         ScrollView {
             VStack(spacing: 30) {
+                // Заголовок
                 VStack(spacing: 10) {
                     Text("Soul Battle")
                         .font(.system(size: 50, weight: .bold, design: .rounded))
@@ -24,27 +24,33 @@ struct AuthenticationView: View {
                         .foregroundColor(.white.opacity(0.8))
                 }
                 
+                // Форма
                 VStack(spacing: 20) {
                     TextField("Имя пользователя", text: $username)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .autocapitalization(.none)
                         .disableAutocorrection(true)
+                        .accessibilityIdentifier("usernameField")
                     
                     SecureField("Пароль", text: $password)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .accessibilityIdentifier("passwordField")
                     
                     if !isLoginMode {
                         SecureField("Подтвердите пароль", text: $confirmPassword)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .accessibilityIdentifier("confirmPasswordField")
                     }
                 }
                 
+                // Основные кнопки
                 VStack(spacing: 15) {
                     ActionButton(
                         title: isLoginMode ? "Войти" : "Зарегистрироваться",
                         action: handleAuthentication,
                         isEnabled: isFormValid,
-                        backgroundColor: .purple
+                        backgroundColor: .purple,
+                        accessibilityId: isLoginMode ? "loginButton" : "registerButton"
                     )
                     
                     Button(isLoginMode ? "Нет аккаунта? Зарегистрируйтесь" : "Уже есть аккаунт? Войдите") {
@@ -52,14 +58,17 @@ struct AuthenticationView: View {
                     }
                     .foregroundColor(.white)
                     
+                    // Гость
                     if isLoginMode {
                         Button("Войти как гость") {
-                            enterAsGuest()
+                            viewModel.enterAsGuest()
                         }
                         .foregroundColor(.white.opacity(0.8))
+                        .accessibilityIdentifier("guestButton")
                     }
                 }
                 
+                // Информация о режиме гостя
                 if isLoginMode {
                     VStack(spacing: 10) {
                         Text("Гостевой режим")
@@ -83,9 +92,6 @@ struct AuthenticationView: View {
         } message: {
             Text(alertMessage)
         }
-        .sheet(isPresented: $showCharacterCreation) {
-            CharacterCreationView(isRegistration: true, username: username, password: password)
-        }
     }
     
     private var isFormValid: Bool {
@@ -104,39 +110,22 @@ struct AuthenticationView: View {
         if isLoginMode {
             loginUser()
         } else {
-            showCharacterCreation = true
+            registerUser()
         }
     }
     
     private func loginUser() {
-        if DataManager.shared.loginUser(username: username, password: password) {
-            proceedToGame()
+        if viewModel.loginUser(username: username, password: password) {
         } else {
             showError("Неверное имя пользователя или пароль")
         }
     }
     
-    private func registerUser(character: PlayerCharacter) {
-        if DataManager.shared.registerUser(username: username, password: password, character: character) {
-            proceedToGame()
+    private func registerUser() {
+        if viewModel.registerUser(username: username, password: password) {
         } else {
             showError("Пользователь с таким именем уже существует")
         }
-    }
-    
-    private func enterAsGuest() {
-        let guestCharacter = PlayerCharacter(
-            name: "Гость",
-            strength: 5,
-            agility: 5,
-            endurance: 5,
-            wisdom: 5,
-            intellect: 5
-        )
-        
-        DataManager.shared.saveCharacter(guestCharacter)
-        viewModel.player1 = Player(from: guestCharacter)
-        viewModel.gameState = .mainMenu
     }
     
     private func switchAuthMode() {
@@ -144,13 +133,6 @@ struct AuthenticationView: View {
         username = ""
         password = ""
         confirmPassword = ""
-    }
-    
-    private func proceedToGame() {
-        if let character = DataManager.shared.loadCharacter() {
-            viewModel.player1 = Player(from: character)
-            viewModel.gameState = .mainMenu
-        }
     }
     
     private func showError(_ message: String) {

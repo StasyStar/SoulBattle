@@ -6,13 +6,69 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		F8E8AD1F2EC63736004A5E27 /* TestPlan.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = F8E8AD1E2EC63736004A5E27 /* TestPlan.xctestplan */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F89DF20F2EC6336C00C1E2D0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F85D1C842EC1081A00B021B3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F85D1C8B2EC1081A00B021B3;
+			remoteInfo = SoulBattle;
+		};
+		F8F42C602EC532F700948FDC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F85D1C842EC1081A00B021B3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F85D1C8B2EC1081A00B021B3;
+			remoteInfo = SoulBattle;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		F85D1C8C2EC1081A00B021B3 /* SoulBattle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SoulBattle.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F89DF20B2EC6336C00C1E2D0 /* SoulBattleUnitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SoulBattleUnitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F8E8AD1E2EC63736004A5E27 /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
+		F8F42C5A2EC532F700948FDC /* SoulBattleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SoulBattleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		F89DF21D2EC6357500C1E2D0 /* Exceptions for "SoulBattle" folder in "SoulBattle" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Tests/SoulBattleUITests/SoulBattleUITests.swift,
+				Tests/SoulBattleUITests/SoulBattleUITestsLaunchTests.swift,
+				Tests/SoulBattleUnitTests/SoulBattleUnitTests.swift,
+			);
+			target = F85D1C8B2EC1081A00B021B3 /* SoulBattle */;
+		};
+		F89DF21E2EC6357500C1E2D0 /* Exceptions for "SoulBattle" folder in "SoulBattleUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Tests/SoulBattleUITests/SoulBattleUITests.swift,
+				Tests/SoulBattleUITests/SoulBattleUITestsLaunchTests.swift,
+			);
+			target = F8F42C592EC532F700948FDC /* SoulBattleUITests */;
+		};
+		F89DF21F2EC6357500C1E2D0 /* Exceptions for "SoulBattle" folder in "SoulBattleUnitTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Tests/SoulBattleUnitTests/SoulBattleUnitTests.swift,
+			);
+			target = F89DF20A2EC6336C00C1E2D0 /* SoulBattleUnitTests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F85D1C8E2EC1081A00B021B3 /* SoulBattle */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F89DF21D2EC6357500C1E2D0 /* Exceptions for "SoulBattle" folder in "SoulBattle" target */,
+				F89DF21E2EC6357500C1E2D0 /* Exceptions for "SoulBattle" folder in "SoulBattleUITests" target */,
+				F89DF21F2EC6357500C1E2D0 /* Exceptions for "SoulBattle" folder in "SoulBattleUnitTests" target */,
+			);
 			path = SoulBattle;
 			sourceTree = "<group>";
 		};
@@ -26,12 +82,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F89DF2082EC6336C00C1E2D0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F8F42C572EC532F700948FDC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		F85D1C832EC1081A00B021B3 = {
 			isa = PBXGroup;
 			children = (
+				F8E8AD1E2EC63736004A5E27 /* TestPlan.xctestplan */,
 				F85D1C8E2EC1081A00B021B3 /* SoulBattle */,
 				F85D1C8D2EC1081A00B021B3 /* Products */,
 			);
@@ -41,6 +112,8 @@
 			isa = PBXGroup;
 			children = (
 				F85D1C8C2EC1081A00B021B3 /* SoulBattle.app */,
+				F8F42C5A2EC532F700948FDC /* SoulBattleUITests.xctest */,
+				F89DF20B2EC6336C00C1E2D0 /* SoulBattleUnitTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,6 +143,46 @@
 			productReference = F85D1C8C2EC1081A00B021B3 /* SoulBattle.app */;
 			productType = "com.apple.product-type.application";
 		};
+		F89DF20A2EC6336C00C1E2D0 /* SoulBattleUnitTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F89DF2132EC6336C00C1E2D0 /* Build configuration list for PBXNativeTarget "SoulBattleUnitTests" */;
+			buildPhases = (
+				F89DF2072EC6336C00C1E2D0 /* Sources */,
+				F89DF2082EC6336C00C1E2D0 /* Frameworks */,
+				F89DF2092EC6336C00C1E2D0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F89DF2102EC6336C00C1E2D0 /* PBXTargetDependency */,
+			);
+			name = SoulBattleUnitTests;
+			packageProductDependencies = (
+			);
+			productName = SoulBattleUnitTests;
+			productReference = F89DF20B2EC6336C00C1E2D0 /* SoulBattleUnitTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		F8F42C592EC532F700948FDC /* SoulBattleUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F8F42C622EC532F700948FDC /* Build configuration list for PBXNativeTarget "SoulBattleUITests" */;
+			buildPhases = (
+				F8F42C562EC532F700948FDC /* Sources */,
+				F8F42C572EC532F700948FDC /* Frameworks */,
+				F8F42C582EC532F700948FDC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F8F42C612EC532F700948FDC /* PBXTargetDependency */,
+			);
+			name = SoulBattleUITests;
+			packageProductDependencies = (
+			);
+			productName = SoulBattleUITests;
+			productReference = F8F42C5A2EC532F700948FDC /* SoulBattleUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -82,6 +195,14 @@
 				TargetAttributes = {
 					F85D1C8B2EC1081A00B021B3 = {
 						CreatedOnToolsVersion = 26.1;
+					};
+					F89DF20A2EC6336C00C1E2D0 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = F85D1C8B2EC1081A00B021B3;
+					};
+					F8F42C592EC532F700948FDC = {
+						CreatedOnToolsVersion = 26.1;
+						TestTargetID = F85D1C8B2EC1081A00B021B3;
 					};
 				};
 			};
@@ -100,12 +221,29 @@
 			projectRoot = "";
 			targets = (
 				F85D1C8B2EC1081A00B021B3 /* SoulBattle */,
+				F8F42C592EC532F700948FDC /* SoulBattleUITests */,
+				F89DF20A2EC6336C00C1E2D0 /* SoulBattleUnitTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		F85D1C8A2EC1081A00B021B3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F8E8AD1F2EC63736004A5E27 /* TestPlan.xctestplan in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F89DF2092EC6336C00C1E2D0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F8F42C582EC532F700948FDC /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +260,34 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F89DF2072EC6336C00C1E2D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F8F42C562EC532F700948FDC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F89DF2102EC6336C00C1E2D0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F85D1C8B2EC1081A00B021B3 /* SoulBattle */;
+			targetProxy = F89DF20F2EC6336C00C1E2D0 /* PBXContainerItemProxy */;
+		};
+		F8F42C612EC532F700948FDC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F85D1C8B2EC1081A00B021B3 /* SoulBattle */;
+			targetProxy = F8F42C602EC532F700948FDC /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		F85D1C952EC1081C00B021B3 /* Debug */ = {
@@ -310,6 +475,88 @@
 			};
 			name = Release;
 		};
+		F89DF2112EC6336C00C1E2D0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3CL266MQ5W;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.study.SoulBattleUnitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SoulBattle.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SoulBattle";
+			};
+			name = Debug;
+		};
+		F89DF2122EC6336C00C1E2D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3CL266MQ5W;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.study.SoulBattleUnitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SoulBattle.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SoulBattle";
+			};
+			name = Release;
+		};
+		F8F42C632EC532F700948FDC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3CL266MQ5W;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.study.SoulBattleUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = SoulBattle;
+			};
+			name = Debug;
+		};
+		F8F42C642EC532F700948FDC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3CL266MQ5W;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.study.SoulBattleUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = SoulBattle;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -327,6 +574,24 @@
 			buildConfigurations = (
 				F85D1C982EC1081C00B021B3 /* Debug */,
 				F85D1C992EC1081C00B021B3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F89DF2132EC6336C00C1E2D0 /* Build configuration list for PBXNativeTarget "SoulBattleUnitTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F89DF2112EC6336C00C1E2D0 /* Debug */,
+				F89DF2122EC6336C00C1E2D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F8F42C622EC532F700948FDC /* Build configuration list for PBXNativeTarget "SoulBattleUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F8F42C632EC532F700948FDC /* Debug */,
+				F8F42C642EC532F700948FDC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

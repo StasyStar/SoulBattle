@@ -1,0 +1,31 @@
+{
+  "configurations" : [
+    {
+      "id" : "13B4D508-4AD6-423E-B121-C2BE405FE566",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:SoulBattle.xcodeproj",
+        "identifier" : "F8F42C592EC532F700948FDC",
+        "name" : "SoulBattleUITests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:SoulBattle.xcodeproj",
+        "identifier" : "F89DF20A2EC6336C00C1E2D0",
+        "name" : "SoulBattleUnitTests"
+      }
+    }
+  ],
+  "version" : 1
+}

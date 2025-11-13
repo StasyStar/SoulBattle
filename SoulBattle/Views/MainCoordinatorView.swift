@@ -17,7 +17,7 @@ struct MainCoordinatorView: View {
             case .authentication:
                 AuthenticationView()
             case .characterCreation:
-                CharacterCreationView()
+                CharacterCreationView(isRegistration: true)
             case .mainMenu:
                 MainMenuView(showLogoutAlert: $showLogoutAlert)
             case .setup:
@@ -43,22 +43,9 @@ struct MainCoordinatorView: View {
         }
     }
     
-    private func checkAuthenticationStatus() {
-        if DataManager.shared.isUserLoggedIn() {
-            if let character = DataManager.shared.loadCharacter() {
-                viewModel.player1 = Player(from: character)
-                viewModel.gameState = .mainMenu
-            } else {
-                viewModel.gameState = .authentication
-            }
-        } else {
-            viewModel.gameState = .authentication
-        }
-    }
+    private func checkAuthenticationStatus() {}
     
     private func logoutUser() {
-        DataManager.shared.logoutUser()
-        viewModel.gameState = .authentication
-        viewModel.resetGame()
+        viewModel.logoutUser()
     }
 }

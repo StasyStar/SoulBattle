@@ -22,7 +22,7 @@ struct RoundDetails {
 }
 
 class GameViewModel: ObservableObject {
-    @Published var gameState: GameState = .characterCreation
+    @Published var gameState: GameState = .authentication
     @Published var currentRound: Int = 1
     @Published var gameLog: [String] = []
     @Published var gameMode: GameMode = .pvp
@@ -38,18 +38,120 @@ class GameViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     init() {
-        if let savedCharacter = DataManager.shared.loadCharacter() {
-            self.player1 = Player(from: savedCharacter)
-            self.gameState = .mainMenu
-        } else {
-            self.player1 = Player(name: "Игрок", characterPreset: .warrior)
-            self.gameState = .authentication
-        }
-        
+        // Инициализируем игроков по умолчанию
+        self.player1 = Player(name: "Игрок", strength: 5, agility: 5, endurance: 5, wisdom: 5, intellect: 5)
         self.player2 = Player(name: "Компьютер", characterPreset: .mage)
         
         setupPlayerObservers()
+        checkAuthenticationStatus()
         addToLog("Добро пожаловать в Soul Battle!")
+    }
+    
+    private func checkAuthenticationStatus() {
+        if DataManager.shared.isUserLoggedIn() {
+            loadCurrentUserCharacter()
+            gameState = .mainMenu
+        } else {
+            gameState = .authentication
+        }
+    }
+    
+    private func loadCurrentUserCharacter() {
+        guard let currentCharacter = DataManager.shared.getCurrentUserCharacter() else {
+            // Если у пользователя нет персонажа, создаем нового
+            createNewCharacterForCurrentUser()
+            return
+        }
+        
+        player1 = Player(from: currentCharacter)
+    }
+    
+    private func createNewCharacterForCurrentUser() {
+        guard let currentUsername = DataManager.shared.getCurrentUser() else { return }
+        
+        let newCharacter = DataManager.shared.createNewCharacter(for: currentUsername)
+        _ = DataManager.shared.updateCurrentUserCharacter(newCharacter)
+        player1 = Player(from: newCharacter)
+    }
+    
+    func loginUser(username: String, password: String) -> Bool {
+        let success = DataManager.shared.loginUser(username: username, password: password)
+        if success {
+            loadCurrentUserCharacter()
+            gameState = .mainMenu
+            addToLog("Добро пожаловать, \(username)!")
+        }
+        return success
+    }
+    
+    func registerUser(username: String, password: String) -> Bool {
+        // Создаем нового персонажа для регистрации
+        let newCharacter = DataManager.shared.createNewCharacter(for: username)
+        let success = DataManager.shared.registerUser(username: username, password: password, character: newCharacter)
+        
+        if success {
+            player1 = Player(from: newCharacter)
+            gameState = .characterCreation
+            addToLog("Аккаунт создан! Теперь создайте своего персонажа, \(username)!")
+        }
+        return success
+    }
+    
+    func logoutUser() {
+        DataManager.shared.logoutUser()
+        player1 = Player(name: "Игрок", strength: 5, agility: 5, endurance: 5, wisdom: 5, intellect: 5)
+        gameState = .authentication
+        resetGame()
+        addToLog("Вы вышли из системы")
+    }
+    
+    func enterAsGuest() {
+        let guestCharacter = PlayerCharacter(
+            name: "Гость",
+            strength: 5,
+            agility: 5,
+            endurance: 5,
+            wisdom: 5,
+            intellect: 5
+        )
+        
+        player1 = Player(from: guestCharacter)
+        gameState = .mainMenu
+        addToLog("Добро пожаловать, Гость!")
+    }
+    
+    func saveCurrentCharacter() {
+        guard DataManager.shared.getCurrentUser() != nil else { return }
+        
+        var character = PlayerCharacter(
+            name: player1.name,
+            strength: player1.strength,
+            agility: player1.agility,
+            endurance: player1.endurance,
+            wisdom: player1.wisdom,
+            intellect: player1.intellect
+        )
+        
+        if let savedCharacter = player1.savedCharacter {
+            character.level = savedCharacter.level
+            character.experience = savedCharacter.experience
+            character.battlesWon = savedCharacter.battlesWon
+            character.battlesLost = savedCharacter.battlesLost
+            character.totalDamageDealt = savedCharacter.totalDamageDealt
+            character.totalDamageTaken = savedCharacter.totalDamageTaken
+            character.totalBonusPoints = savedCharacter.totalBonusPoints
+        }
+        
+        _ = DataManager.shared.updateCurrentUserCharacter(character)
+        player1.savedCharacter = character
+        
+        addToLog("Персонаж сохранен")
+    }
+    
+    func finishCharacterCreation() {
+        saveCurrentCharacter()
+        gameState = .mainMenu
+        addToLog("Персонаж создан! Добро пожаловать в игру!")
     }
     
     func forceUpdate() {
@@ -58,7 +160,7 @@ class GameViewModel: ObservableObject {
     
     func startPVPGame() {
         gameMode = .pvp
-        player1.name = DataManager.shared.loadCharacter()?.name ?? "Игрок 1"
+        player1.name = player1.savedCharacter?.name ?? "Игрок 1"
         player2.name = "Игрок 2"
         resetGame()
         gameState = .setup
@@ -67,24 +169,21 @@ class GameViewModel: ObservableObject {
     
     func startPVEGame() {
         gameMode = .pve
-        player1.name = DataManager.shared.loadCharacter()?.name ?? "Игрок"
+        player1.name = player1.savedCharacter?.name ?? "Игрок"
         player2.name = "Компьютер"
         resetGame()
         gameState = .setup
         addToLog("Режим: Игрок vs Компьютер")
         
-        // Выбор за компьютер
         makeAISelections()
     }
     
-    // MARK: - Game Flow
     func startGame() {
         gameState = .selection
         currentRound = 1
-        resetPlayerHealth() // Сбрасываем здоровье перед началом игры
+        resetPlayerHealth()
         addToLog("Игра началась! \(player1.name) против \(player2.name)")
         
-        // В PVE выбор за компьютер
         if gameMode == .pve {
             makeAISelections()
         }
@@ -131,13 +230,11 @@ class GameViewModel: ObservableObject {
             player2HealthAfter: player2.health
         )
         
-        // Добавление информацию об уроне в лог
         addToLog("\(player1.name) нанес \(String(format: "%.1f", damageToPlayer2)) урона")
         addToLog("\(player2.name) нанес \(String(format: "%.1f", damageToPlayer1)) урона")
         addToLog("\(player1.name): \(String(format: "%.0f", player1.health)) HP")
         addToLog("\(player2.name): \(String(format: "%.0f", player2.health)) HP")
         
-        // Определение победителя раунда
         determineRoundWinner()
         
         if player1.health <= 0 || player2.health <= 0 {
@@ -217,10 +314,8 @@ class GameViewModel: ObservableObject {
     private func endGame() {
         gameState = .result
         
-        // Определение победителя и обновление статистики
         if player1.health <= 0 && player2.health <= 0 {
             addToLog("НИЧЬЯ! Оба игрока пали в бою!")
-            // За ничью тоже даем немного опыта
             updateCharacterAfterBattle(won: false, isDraw: true)
         } else if player1.health <= 0 {
             addToLog("\(player2.name) ПОБЕДИЛ!")
@@ -233,25 +328,25 @@ class GameViewModel: ObservableObject {
         }
     }
 
-    private func updateCharacterAfterBattle(won: Bool, isDraw: Bool) {
-        if var character = DataManager.shared.loadCharacter() {
-            let oldLevel = character.level
-            
-            character.recordBattleResult(
-                won: won,
-                damageDealt: player1.damageDealt,
-                damageTaken: player1.damageTaken
-            )
-            
-            DataManager.shared.saveCharacter(character)
-            
-            // Проверка, был ли получен новый уровень
-            if character.level > oldLevel {
-                let levelsGained = character.level - oldLevel
-                addToLog("🎉 Получен \(character.level) уровень! +\(levelsGained * 2) очков характеристик")
-            }
-            
-            player1 = Player(from: character)
+    func updateCharacterAfterBattle(won: Bool, isDraw: Bool) {
+        guard var character = player1.savedCharacter else { return }
+        
+        let oldLevel = character.level
+        
+        character.recordBattleResult(
+            won: won,
+            damageDealt: player1.damageDealt,
+            damageTaken: player1.damageTaken
+        )
+        
+        _ = DataManager.shared.updateCurrentUserCharacter(character)
+        
+        player1 = Player(from: character)
+        
+        // Проверяем, был ли получен новый уровень
+        if character.level > oldLevel {
+            let levelsGained = character.level - oldLevel
+            addToLog("🎉 Получен \(character.level) уровень! +\(levelsGained * 2) очков характеристик")
         }
     }
     
@@ -278,7 +373,6 @@ class GameViewModel: ObservableObject {
         player2.health = player2.maxHealth
     }
     
-    // Получение иконки атаки
     private func getAttackIcon(_ attack: AttackType) -> String {
         switch attack {
         case .fire: return "🔥"
@@ -289,7 +383,6 @@ class GameViewModel: ObservableObject {
         }
     }
 
-    // Получение иконки защиты
     private func getDefenseIcon(_ defense: DefenseType) -> String {
         switch defense {
         case .fire: return "🔥"
@@ -304,5 +397,20 @@ class GameViewModel: ObservableObject {
         let attackIcons = attacks.map { getAttackIcon($0) }.joined(separator: " + ")
         let defenseIcons = defenses.map { getDefenseIcon($0) }.joined(separator: " + ")
         return "Атака: \(attackIcons), Защита: \(defenseIcons)"
+    }
+    
+    convenience init(testMode: Bool) {
+        self.init()
+        if testMode {
+            setupTestEnvironment()
+        }
+    }
+    
+    private func setupTestEnvironment() {
+        // Создаем тестовых игроков
+        player1 = Player(name: "TestPlayer", strength: 5, agility: 5, endurance: 5, wisdom: 5, intellect: 5)
+        player2 = Player(name: "TestEnemy", strength: 5, agility: 5, endurance: 5, wisdom: 5, intellect: 5)
+        
+        gameLog.removeAll()
     }
 }

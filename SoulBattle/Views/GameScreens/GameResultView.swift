@@ -41,7 +41,7 @@ struct GameResultView: View {
                 }
                 
                 // Статистика персонажа
-                if let character = DataManager.shared.loadCharacter() {
+                if let character = DataManager.shared.getCurrentUserCharacter() {
                     CharacterStatisticsView(character: character)
                 }
                 
@@ -71,7 +71,6 @@ struct GameResultView: View {
         }
     }
     
-    // Структура для хранения статистики битвы
     struct BattleStatistics {
         let player1DamageDealt: Double
         let player1DamageTaken: Double
@@ -86,7 +85,6 @@ struct GameResultView: View {
         let player2FinalHealth: Double
     }
     
-    // Основной метод расчета статистики из логов
     private func calculateBattleStatistics() -> BattleStatistics {
         var player1DamageDealt: Double = 0
         var player1DamageTaken: Double = 0
@@ -217,7 +215,7 @@ struct GameResultView: View {
         let opponentName = GameConstants.getRandomAIName()
         
         // Генерируем новые характеристики для следующей игры
-        if let playerCharacter = DataManager.shared.loadCharacter() {
+        if let playerCharacter = DataManager.shared.getCurrentUserCharacter() {
             let playerTotalStats = playerCharacter.strength + playerCharacter.agility +
                                   playerCharacter.endurance + playerCharacter.wisdom +
                                   playerCharacter.intellect
@@ -468,11 +466,10 @@ struct GameResultActionButtons: View {
     }
     
     private func startNewGame() {
-        // Сброс игры
         gameViewModel.resetGame()
         
         // Генерация нового противника
-        if let playerCharacter = DataManager.shared.loadCharacter() {
+        if let playerCharacter = DataManager.shared.getCurrentUserCharacter() {
             let playerTotalStats = playerCharacter.strength + playerCharacter.agility +
                                   playerCharacter.endurance + playerCharacter.wisdom +
                                   playerCharacter.intellect

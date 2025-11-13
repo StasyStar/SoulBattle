@@ -22,7 +22,7 @@ struct PlayerSetupView: View {
                         .foregroundColor(.white)
                         .padding(.top, 10)
                     
-                    if let character = DataManager.shared.loadCharacter() {
+                    if let character = DataManager.shared.getCurrentUserCharacter() {
                         VStack(spacing: 8) {
                             HStack {
                                 Text("\(character.name)")
@@ -75,6 +75,7 @@ struct PlayerSetupView: View {
                             isEnabled: true,
                             backgroundColor: .purple
                         )
+                        .accessibilityIdentifier("startBattleButton")
                         
                         Button("В меню") {
                             viewModel.backToMainMenu()
@@ -103,7 +104,7 @@ struct PlayerSetupView: View {
     }
     
     private func generateOpponentStats() {
-        guard let playerCharacter = DataManager.shared.loadCharacter() else { return }
+        guard let playerCharacter = DataManager.shared.getCurrentUserCharacter() else { return }
         
         let playerTotalStats = playerCharacter.strength + playerCharacter.agility +
                               playerCharacter.endurance + playerCharacter.wisdom +
@@ -156,7 +157,6 @@ struct PlayerSetupView: View {
     }
 }
 
-// MARK: - PlayerCardView
 struct PlayerCardView: View {
     @ObservedObject var player: Player
     let showEditButton: Bool
@@ -222,7 +222,6 @@ struct PlayerCardView: View {
     }
 }
 
-// MARK: - StatView
 struct StatView: View {
     let name: String
     let value: Int
@@ -245,7 +244,6 @@ struct StatView: View {
     }
 }
 
-// MARK: - GameRulesView
 struct GameRulesView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 15) {
@@ -290,7 +288,6 @@ struct GameRulesView: View {
     }
 }
 
-// MARK: - RuleItem
 struct RuleItem: View {
     let icon: String
     let text: String

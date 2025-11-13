@@ -27,8 +27,12 @@ struct MainMenuView: View {
                             Text("Привет, \(currentUser)!")
                                 .font(.headline)
                                 .foregroundColor(.white.opacity(0.9))
-                        } else if let character = DataManager.shared.loadCharacter() {
+                        } else if let character = viewModel.player1.savedCharacter {
                             Text("Привет, \(character.name)!")
+                                .font(.headline)
+                                .foregroundColor(.white.opacity(0.9))
+                        } else {
+                            Text("Привет, Гость!")
                                 .font(.headline)
                                 .foregroundColor(.white.opacity(0.9))
                         }
@@ -46,12 +50,20 @@ struct MainMenuView: View {
                 .padding(.top, 10)
                 
                 VStack {
-                    Image("battle_mages")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(height: 200)
-                        .cornerRadius(15)
-                        .shadow(radius: 10)
+                    if UIImage(named: "battle_mages") != nil {
+                        Image("battle_mages")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 200)
+                            .cornerRadius(15)
+                            .shadow(radius: 10)
+                    } else {
+                        // Fallback если изображение не найдено
+                        Image(systemName: "person.3.fill")
+                            .font(.system(size: 100))
+                            .foregroundColor(.white.opacity(0.7))
+                            .frame(height: 200)
+                    }
                     
                     Text("Битва Душ")
                         .font(.title3)
@@ -61,7 +73,7 @@ struct MainMenuView: View {
                 }
                 .padding(.horizontal)
                 
-                if let character = DataManager.shared.loadCharacter() {
+                if let character = viewModel.player1.savedCharacter {
                     VStack(spacing: 8) {
                         Text("Статистика персонажа")
                             .font(.headline)
@@ -113,6 +125,7 @@ struct MainMenuView: View {
                         color: .blue,
                         action: { viewModel.startPVPGame() }
                     )
+                    .accessibilityIdentifier("pvpButton")
                     
                     MenuButton(
                         title: "Игрок vs Компьютер",
@@ -121,6 +134,7 @@ struct MainMenuView: View {
                         color: .green,
                         action: { viewModel.startPVEGame() }
                     )
+                    .accessibilityIdentifier("pveButton")
                     
                     Button("Редактировать персонажа") {
                         showCharacterEditor = true

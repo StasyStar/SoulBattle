@@ -2,74 +2,78 @@ import Foundation
 
 class DataManager {
     static let shared = DataManager()
-    
-    private let userDefaults = UserDefaults.standard
-    private let savedCharacterKey = "savedCharacter"
     private let currentUserKey = "currentUser"
     private let usersKey = "registeredUsers"
+    private let testUsersKey = "testUsers"
+    private let userDefaults = UserDefaults.standard
     
     private init() {}
     
-    func saveCharacter(_ character: PlayerCharacter) {
-        let encoder = JSONEncoder()
-        if let encoded = try? encoder.encode(character) {
-            userDefaults.set(encoded, forKey: savedCharacterKey)
+    var isTestingMode: Bool {
+        return ProcessInfo.processInfo.arguments.contains("--UITesting") ||
+               ProcessInfo.processInfo.arguments.contains("--testing")
+    }
+    
+    private func getUsersKey() -> String {
+        return isTestingMode ? testUsersKey : usersKey
+    }
+    
+    func saveCharacter(_ character: PlayerCharacter, for username: String) -> Bool {
+        var users = getAllUsers()
+        guard let index = users.firstIndex(where: { $0.username == username }) else {
+            return false
         }
+        
+        users[index].character = character
+        return saveUsers(users)
     }
     
-    func loadCharacter() -> PlayerCharacter? {
-        if let savedData = userDefaults.data(forKey: savedCharacterKey) {
-            let decoder = JSONDecoder()
-            if let loadedCharacter = try? decoder.decode(PlayerCharacter.self, from: savedData) {
-                return loadedCharacter
-            }
-        }
-        return nil
+    func loadCharacter(for username: String) -> PlayerCharacter? {
+        let users = getAllUsers()
+        return users.first(where: { $0.username == username })?.character
     }
     
-    func deleteCharacter() {
-        userDefaults.removeObject(forKey: savedCharacterKey)
+    func getCurrentUserCharacter() -> PlayerCharacter? {
+        guard let currentUsername = getCurrentUser() else { return nil }
+        return loadCharacter(for: currentUsername)
     }
-    
-    func hasSavedCharacter() -> Bool {
-        return loadCharacter() != nil
-    }
-    
+        
     func registerUser(username: String, password: String, character: PlayerCharacter) -> Bool {
         var users = getAllUsers()
         
-        // Проверка username
         if users.contains(where: { $0.username == username }) {
             return false
         }
         
         let user = UserAccount(
             username: username,
-            password: password, // В реальном приложении нужно хэшировать
+            password: password,
             character: character,
             registrationDate: Date()
         )
         
         users.append(user)
-        return saveUsers(users)
+        let success = saveUsers(users)
+        
+        if success {
+            setCurrentUser(username)
+        }
+        
+        return success
     }
     
     func loginUser(username: String, password: String) -> Bool {
         let users = getAllUsers()
-        guard let user = users.first(where: { $0.username == username && $0.password == password }) else {
+        guard users.first(where: { $0.username == username && $0.password == password }) != nil else {
             return false
         }
         
-        // Сохранение текущего пользователя
         setCurrentUser(username)
-        // Загрузка персонажа
-        saveCharacter(user.character)
         return true
     }
     
     func logoutUser() {
         userDefaults.removeObject(forKey: currentUserKey)
-        deleteCharacter()
     }
     
     func getCurrentUser() -> String? {
@@ -77,19 +81,12 @@ class DataManager {
     }
 
     func isUserLoggedIn() -> Bool {
-        return getCurrentUser() != nil && hasSavedCharacter()
+        return getCurrentUser() != nil
     }
     
     func updateCurrentUserCharacter(_ character: PlayerCharacter) -> Bool {
         guard let currentUsername = getCurrentUser() else { return false }
-        
-        var users = getAllUsers()
-        guard let index = users.firstIndex(where: { $0.username == currentUsername }) else {
-            return false
-        }
-        
-        users[index].character = character
-        return saveUsers(users)
+        return saveCharacter(character, for: currentUsername)
     }
     
     func deleteUserAccount() -> Bool {
@@ -106,10 +103,11 @@ class DataManager {
     }
     
     func getUserStatistics() -> UserStatistics? {
-        guard let character = loadCharacter() else { return nil }
+        guard let currentUsername = getCurrentUser(),
+              let character = getCurrentUserCharacter() else { return nil }
         
         let users = getAllUsers()
-        guard let user = users.first(where: { $0.username == getCurrentUser() }) else {
+        guard let user = users.first(where: { $0.username == currentUsername }) else {
             return nil
         }
         
@@ -119,13 +117,61 @@ class DataManager {
             character: character
         )
     }
+        
+    func createNewCharacter(for username: String) -> PlayerCharacter {
+        return PlayerCharacter(
+            name: username,
+            strength: 5,
+            agility: 5,
+            endurance: 5,
+            wisdom: 5,
+            intellect: 5
+        )
+    }
+    
+    func doesUserExist(_ username: String) -> Bool {
+        let users = getAllUsers()
+        return users.contains(where: { $0.username == username })
+    }
+        
+    func clearTestData() {
+        if isTestingMode {
+            userDefaults.removeObject(forKey: testUsersKey)
+            userDefaults.removeObject(forKey: currentUserKey)
+        }
+    }
+    
+    func setupTestData() {
+        if isTestingMode {
+            let testCharacter = PlayerCharacter(
+                name: "TestHero",
+                strength: 5,
+                agility: 5,
+                endurance: 5,
+                wisdom: 5,
+                intellect: 5
+            )
+            
+            let testUser = UserAccount(
+                username: "testuser",
+                password: "testpass",
+                character: testCharacter,
+                registrationDate: Date()
+            )
+            
+            var users = getAllUsers()
+            users.append(testUser)
+            _ = saveUsers(users)
+        }
+    }
     
     private func setCurrentUser(_ username: String) {
         userDefaults.set(username, forKey: currentUserKey)
     }
     
     private func getAllUsers() -> [UserAccount] {
-        if let savedData = userDefaults.data(forKey: usersKey) {
+        let key = getUsersKey()
+        if let savedData = userDefaults.data(forKey: key) {
             let decoder = JSONDecoder()
             if let loadedUsers = try? decoder.decode([UserAccount].self, from: savedData) {
                 return loadedUsers
@@ -137,7 +183,7 @@ class DataManager {
     private func saveUsers(_ users: [UserAccount]) -> Bool {
         let encoder = JSONEncoder()
         if let encoded = try? encoder.encode(users) {
-            userDefaults.set(encoded, forKey: usersKey)
+            userDefaults.set(encoded, forKey: getUsersKey())
             return true
         }
         return false

@@ -188,7 +188,6 @@ class Player: ObservableObject, Identifiable {
         return 25 + (level - 1) * 2
     }
     
-    // Сохранение персонажа
     func saveCharacter() {
         var character: PlayerCharacter
         if let existingCharacter = savedCharacter {
@@ -210,8 +209,10 @@ class Player: ObservableObject, Identifiable {
             )
         }
         
-        DataManager.shared.saveCharacter(character)
-        savedCharacter = character
+        if let currentUsername = DataManager.shared.getCurrentUser() {
+            DataManager.shared.saveCharacter(character, for: currentUsername)
+            savedCharacter = character
+        }
     }
 }
 

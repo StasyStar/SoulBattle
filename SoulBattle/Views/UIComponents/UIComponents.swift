@@ -2,10 +2,11 @@ import SwiftUI
 
 struct ActionButton: View {
     let title: String
-    let action: () -> Void
-    var isEnabled: Bool = true
-    var backgroundColor: Color = .blue
-    var size: ButtonSize = .medium
+        let action: () -> Void
+        var isEnabled: Bool = true
+        var backgroundColor: Color = .blue
+        var size: ButtonSize = .medium
+        var accessibilityId: String? = nil
     
     enum ButtonSize {
         case small, medium, large
@@ -62,6 +63,7 @@ struct ActionButton: View {
         }
         .disabled(!isEnabled)
         .padding(.horizontal)
+        .accessibilityIdentifier(accessibilityId ?? "")
     }
 }
 
